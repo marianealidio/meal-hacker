@@ -1,0 +1,110 @@
+body{
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(233,160,160,0.65);
+    margin: 20px 20px 20px 20px;
+    padding: 20px;
+}
+.header {
+    position: sticky;
+    top:0;
+    width: 100%;
+}
+.title{ 
+    position: absolute;
+    font-size: 50px ;
+    text-align: center;
+    padding-top: 5px;
+    width: 450px;
+    height: 70px;
+    left: 455px;
+    top: 39px;
+    background-image: linear-gradient(80deg, #E9A0A0,#FFEBEB );
+    color: #660000;
+    font-family: Apple Chancery, cursive;
+    font-weight:bold ;
+    letter-spacing: 5px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(233,160,160,0.65);
+}
+.navbar {
+    position: absolute;
+    width:1339px;
+    height: 70px;
+    top: 181px;
+    left: 15px;
+    background: #ee8888;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 30px;
+    gap: 100px;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(233,160,160,0.65);
+}
+a{
+    color: #660000;
+    text-decoration: none;
+    font-family: Apple Chancery;
+}
+.logo {
+    position: absolute;
+    width: 140px;
+    height: 130px;
+    left: 30px;
+    top: 30px;
+}
+.profile-icon{
+    position: absolute;
+    width: 100px;
+    height: 90px;
+    left: 1230px;
+    top: 39px;
+}
+.profile {
+    position: absolute;
+    width: 121px;
+    height: 105px;
+    left: 1253px;
+    top: 130px;
+    font-weight: bold;
+}
+main{
+    padding-top: 260px;
+}
+.page-title{
+    text-align: center;
+    font-weight: bold;
+    font-size:40px;
+    color: #660000;
+    font-family:Apple Chancery;
+    padding-top:30px;
+}
+.dashboard{
+    display: grid;
+    grid-template-columns: 554px 616px;
+    gap: 30px 40px;
+    justify-content: center;
+    padding-bottom: 40px;
+}
+.best-meal-suggestion{
+    width: 554px;
+    height: 596px;
+    left: 115px;
+    top: 323px;
+    background: #FFEBEB;
+    grid-row: span 2;
+}
+.expiring-items{
+    width: 616px;
+    height: 286px;
+    left: 736px;
+    top: 323px;
+    background: #E9A0A0;
+}
+.reminders{
+    width: 616px;
+    height: 198px;
+    left: 736px;
+    top: 710px;
+    background: #F2CFCF;
+}

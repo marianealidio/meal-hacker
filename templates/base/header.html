@@ -1,0 +1,16 @@
+{% load static %}
+<header class = "header">
+    <img class = "logo" src = "{% static 'img/logo.JPG' %}" alt = "logo">
+    <div class = "title"> Meal Hacker</div>
+    <div class = "profile-container">
+        <img class = "profile-icon" src = "{% static 'img/profile.jpeg' %}" alt = "profile icon" >
+        <a  class = "profile" href ="/profile">Profile</a>
+    </div>
+    <nav class = "navbar">
+        <a href="/"> Homepage </a>
+        <a href="{% url 'inventory'%}"> Inventory </a>
+        <a href="/library"> Library </a>
+        <a href="/calendar"> Calendar </a>
+        <a href="/shoppinglist"> Shopping List </a>
+    </nav>
+</header>

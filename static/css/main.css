@@ -3,11 +3,18 @@ body{
     box-shadow: 0 0 15px rgba(233,160,160,0.65);
     margin: 20px 20px 20px 20px;
     padding: 20px;
+    justify-content: center;
+    font-family: Apple Chancery, cursive;
 }
-.header {
-    position: sticky;
-    top:0;
-    width: 100%;
+header,.header{
+    position: fixed;
+    top:25px;
+    width: 95%;
+    height: 260px;
+    background-color:#FFFFFF;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(233,160,160,0.65);
+    z-index: 5;
 }
 .title{ 
     position: absolute;
@@ -15,9 +22,9 @@ body{
     text-align: center;
     padding-top: 5px;
     width: 450px;
-    height: 70px;
+    height: 70px;x
     left: 455px;
-    top: 39px;
+    top: 20px;
     background-image: linear-gradient(80deg, #E9A0A0,#FFEBEB );
     color: #660000;
     font-family: Apple Chancery, cursive;
@@ -48,10 +55,10 @@ a{
 }
 .logo {
     position: absolute;
-    width: 140px;
-    height: 130px;
-    left: 30px;
-    top: 30px;
+    width: 200px;
+    height: 160px;
+    left: 10px;
+    top: 10px;
 }
 .profile-icon{
     position: absolute;
@@ -69,7 +76,7 @@ a{
     font-weight: bold;
 }
 main{
-    padding-top: 260px;
+    padding-top: 280px;
 }
 .page-title{
     text-align: center;
@@ -77,22 +84,28 @@ main{
     font-size:40px;
     color: #660000;
     font-family:Apple Chancery;
-    padding-top:30px;
+    padding-top:0px;
+    padding-bottom: 20px;
 }
 .dashboard{
     display: grid;
-    grid-template-columns: 554px 616px;
+    grid-template-columns: 1fr 1fr;
     gap: 30px 40px;
-    justify-content: center;
+    max-width: 1300px;
+    margin: 0 auto;
+    padding-top: 10px;
     padding-bottom: 40px;
+    align-items: start;
 }
 .best-meal-suggestion{
-    width: 554px;
+    width: 600px;
     height: 596px;
     left: 115px;
     top: 323px;
     background: #FFEBEB;
     grid-row: span 2;
+    padding-top: 10px;
+
 }
 .expiring-items{
     width: 616px;
@@ -100,6 +113,8 @@ main{
     left: 736px;
     top: 323px;
     background: #E9A0A0;
+    padding-top: 20px;
+
 }
 .reminders{
     width: 616px;
@@ -107,4 +122,145 @@ main{
     left: 736px;
     top: 710px;
     background: #F2CFCF;
+}
+h2{
+    padding-left: 20px;
+}
+.inventory-shopping-layout{
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap:40px;
+    max-width: 1300px;
+    margin:0 auto;
+}
+.inventory,.basket{
+    position: relative;
+    width: 100%;
+    height: 646px;
+    background: #FFEBEB;
+}
+.pantry{
+    position: absolute;
+    width: 650px;
+    height: 147px;
+    left: 50px;
+    top: 80px;
+    background: #FFFFFF;
+}
+.fridge{
+    position: absolute;
+    width: 650px;
+    height: 147px;
+    left: 50px;
+    top: 250px;
+    background: #FFFFFF;
+}
+.freezer{
+    position: absolute;
+    width: 650px;
+    height: 147px;
+    left: 50px;
+    top: 420px;
+    background: #FFFFFF;   
+}
+.generate-meals{
+    position: absolute;
+    top: 600px;
+    left: 320px;
+    height: 100px;
+    width: 500px;
+}
+.items{
+    position: relative;
+    width: 100%;
+    height: 604px;
+    background:#FFEBEB;
+}
+.product{
+    position: absolute;
+    width: 296px;
+    height: 50px;
+    background: #E9A0A0;
+    left: 30px;
+    top: 100px;
+}
+.add{
+    position: absolute;
+    top: 110px;
+    left: 370px;
+    width: 50px;
+    height: 30px;
+
+}
+button{
+    background: #ee8888;
+    z-index: 3;
+}
+.forms-container{
+    box-sizing: border-box;
+    position: absolute;
+    width: 858px;
+    height: 836px;
+    left: 291px;
+    top: 94px;
+    background: #FFFFFF;
+    border-radius: 15px;
+    box-shadow: 0 0 15px rgba(233,160,160,0.65);
+}
+.form-logo{
+    position: absolute;
+    width: 200px;
+    height: 160px;
+    left: 400px;
+    top: 10px;
+}
+input{
+    position: absolute;
+    width: 327px;
+    height: 61px;
+    left: 559px;
+    top: 451px;
+    background: #FFEBEB;
+}
+
+.user-profile{
+    position: relative;
+    width: 554px;
+    height: 596px;
+    left: 30%;
+    background: #FFEBEB;
+    grid-row: span 2;
+    padding-top: 10px;
+    justify-content: center;
+    align-items: center;
+}
+.logout-button{
+    position: absolute;
+    left:100px;
+    width: 200px;
+    height: 51px;
+    background: #E9A0A0;
+    z-index: 5;
+}
+.meal-idead{
+    position: relative;
+    width: 554px;
+    height: 596px;
+    left: 30%;
+    background: #FFEBEB;
+    grid-row: span 2;
+    padding-top: 10px;
+    justify-content: center;
+    align-items: center;
+}
+.meal-list,.calendar{   
+    position: relative;
+    width: 1000px;
+    height: 800px;
+    left: 15%;
+    background: #FFEBEB;
+    grid-row: span 2;
+    padding-top: 10px;
+    justify-content: center;
+    align-items: center;
 }

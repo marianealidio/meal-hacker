@@ -11,6 +11,24 @@
     {% include "base/header.html"%}
     <main>
         <div class = "page-title"> Inventory </div>
+        <div class="inventory-shopping-layout">
+            <div class = "inventory">
+                <h2 class ="inventory-title"> Inventory </h2>
+                <div class = "pantry"> Pantry </div>
+                <div class = "fridge"> Fridge </div>
+                <div class = "freezer"> Freezer </div>         
+                <div class = "generate-meals">
+                    <a href="{% url 'generatedmeals'%}"><button type="button"> Generate Meals </button></a>
+                </div>
+            </div>
+            <div class = "items">
+                <h2> Ingredients </h2>
+                <div class = "product"> example: chicken </div>
+                <div class = "add">
+                    <button type="button"> add </button>
+                </div>   
+            </div>
+        </div> 
     </main>    
 </body>
 </html>

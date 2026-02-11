@@ -1,0 +1,23 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <title> Profile </title>
+</head>
+<body>
+        <div class = "page-title"> Profile </div>
+        <div class = "user-profile">
+            <p> Name
+                <br>
+                Email
+                <br>
+                Settings
+             </p>
+             <a href="{% url 'login'%}"><button type="button"> Log Out </button></a>
+
+        </div>
+</body>
+</html>

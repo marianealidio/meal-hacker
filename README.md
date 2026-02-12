@@ -16,7 +16,9 @@
 - Run these commands base on OS
 ### macOS:
 python3 -m venv venv
+
 source venv/bin/activate
+
 python -m pip install --upgrade pip
 
 # if requirements.txt exist:
@@ -28,11 +30,14 @@ python -m pip install --upgrade pip
   pip install Django==4.2.27
   
 python manage.py migrate
+
 python manage.py runserver
 
 ### Windows:
 py -m venv .venv
+
 .\.venv\Scripts\Activate.ps1
+
 python -m pip install --upgrade pip
 
 # if requirements.txt exist: 
@@ -41,6 +46,7 @@ python -m pip install --upgrade pip
   pip install Django==4.2.27
   
 py manage.py migrate
+
 py manage.py runserver
 
 ### Open the website 

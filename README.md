@@ -21,11 +21,11 @@ source venv/bin/activate
 
 python -m pip install --upgrade pip
 
-# if requirements.txt exist:
+## if requirements.txt exist:
 
   pip install -r requirements.txt
   
-# if not :
+## if not :
 
   pip install Django==4.2.27
   
@@ -40,9 +40,9 @@ py -m venv .venv
 
 python -m pip install --upgrade pip
 
-# if requirements.txt exist: 
+## if requirements.txt exist: 
   pip install -r requirements.txt
-# if not :
+## if not :
   pip install Django==4.2.27
   
 py manage.py migrate

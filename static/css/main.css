@@ -3,38 +3,39 @@ body{
     box-shadow: 0 0 15px rgba(233,160,160,0.65);
     margin:10px 15px 10px 15px;
     justify-content: center;
-    font-family: Apple Chancery, cursive;
+    font-family: Georgia, 'Times New Roman', serif;
 }
 header,.header{
     position: fixed;
     background-color: white;
     top:5px;
-    width: 98%;
+    left:20px;
+    right:20px;
+    width: auto;
     height: 150px;
     border-radius: 15px;
     box-shadow: 0 0 15px rgba(233,160,160,0.65);
     z-index: 5;
 }
-.title{ 
-    position: absolute;
+.title{
+    position: static;
+    margin: 0 auto;
+    display: block;
+    width: fit-content;
+    max-width: 100%;
     font-size: 60px ;
     text-align: center;
-    padding-top: 5px;
-    width: 400px;
-    height: 50px;
-    left: 525px;
-    top: 20px;
+    padding: 5px 18px;
     color: #660000;
-    font-family: Apple Chancery, cursive;
     font-weight:bold ;
     letter-spacing: 5px;
 }
 .navbar {
-    position: absolute;
-    width: 1100px;
+    position: static;
+    margin: 50px auto 0;
+    width: 100%;
+    max-width: 1400px;
     height: 50px;
-    top: 130px;
-    left: 170px;
     background: #ee8888;
     display: flex;
     justify-content: center;
@@ -47,7 +48,7 @@ header,.header{
 a{
     color: #660000;
     text-decoration: none;
-    font-family: Apple Chancery;
+
 }
 .logo {
     position: absolute;
@@ -56,16 +57,16 @@ a{
 }
 .profile-icon{
     position: absolute;
-    width: 80px;
+    width: 90px;
     height: 70px;
-    left: 1300px;
+    right: 20px;
     top: 39px;
 }
 .profile {
     position: absolute;
-    width: 90px;
+    width: 80px;
     height: 80px;
-    left: 1315px;
+    right: 10px;
     top: 110px;
     font-weight: bold;
 }
@@ -77,7 +78,6 @@ main{
     font-weight: bold;
     font-size:30px;
     color: #660000;
-    font-family:Apple Chancery;
     padding-top:0px;
     padding-bottom: 20px;
 }
@@ -85,6 +85,7 @@ main{
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px 40px;
+    width: 100%;
     max-width: 1300px;
     margin: 0 auto;
     padding-top: 10px;
@@ -92,10 +93,8 @@ main{
     align-items: start;
 }
 .best-meal-suggestion{
-    width: 600px;
-    height: 596px;
-    left: 115px;
-    top: 323px;
+    width: 100%;
+    min-height: 596px;
     background: #FFEBEB;
     grid-row: span 2;
     padding-top: 10px;
@@ -155,7 +154,7 @@ h2{
     height: 147px;
     left: 50px;
     top: 420px;
-    background: #FFFFFF;   
+    background: #FFFFFF;  
 }
 .generate-meals{
     position: absolute;
@@ -241,7 +240,7 @@ input{
     justify-content: center;
     align-items: center;
 }
-.meal-list,.calendar{   
+.meal-list,.calendar{  
     position: relative;
     width: 1000px;
     height: 800px;

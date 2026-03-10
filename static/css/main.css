@@ -189,7 +189,16 @@ button{
     background: #ee8888;
     z-index: 3;
 }
-.login-form {
+.auth-container{
+    backgroung: #FFEBEB;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 30px auto 0;
+    width: 80%;
+    max-width: 1000px;
+}
+.login-form, .signup-form {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -199,7 +208,7 @@ button{
     position: absolute;
     width: 200px;
     height: 160px;
-    left: 43%;
+    left: 40%;
     top: 10px;
 }
 input{

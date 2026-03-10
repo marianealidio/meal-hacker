@@ -16,4 +16,5 @@ def login(request):
     return render(request, "pages/login.html")    
 def generatedmeals(request):
     return render(request, "pages/generatedmeals.html") 
- 
+def signup(request):
+    return render(request, "pages/signup.html") 

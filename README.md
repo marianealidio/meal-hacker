@@ -34,20 +34,20 @@ python manage.py migrate
 python manage.py runserver
 
 ### Windows:
-py -m venv .venv
+python -m venv myworld
 
-.\.venv\Scripts\Activate.ps1
+myworld\Scripts\activate.bat
 
 python -m pip install --upgrade pip
 
 ## if requirements.txt exist: 
-  pip install -r requirements.txt
+  python pip install -r requirements.txt
 ## if not :
-  pip install Django==4.2.27
+  python -m pip install Django==4.2.27
   
-py manage.py migrate
+python manage.py migrate
 
-py manage.py runserver
+python manage.py runserver
 
 ### Open the website 
 - Open a browser and got to the link provided in terminal 

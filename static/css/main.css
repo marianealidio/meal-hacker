@@ -129,39 +129,20 @@ h2{
 .inventory,.basket{
     position: relative;
     width: 100%;
-    height: 646px;
+    min-height: 646px;
     background: #FFEBEB;
 }
-.pantry{
-    position: absolute;
-    width: 650px;
-    height: 147px;
-    left: 50px;
-    top: 80px;
+.pantry, .fridge, .freezer{
+    width: 90%;
+    min-height: 100px;
+    margin: 15px auto;
+    padding: 10px 15px;
+    border-radius: 8px;
     background: #FFFFFF;
-}
-.fridge{
-    position: absolute;
-    width: 650px;
-    height: 147px;
-    left: 50px;
-    top: 250px;
-    background: #FFFFFF;
-}
-.freezer{
-    position: absolute;
-    width: 650px;
-    height: 147px;
-    left: 50px;
-    top: 420px;
-    background: #FFFFFF;  
 }
 .generate-meals{
-    position: absolute;
-    top: 600px;
-    left: 320px;
-    height: 100px;
-    width: 500px;
+    text-align: center;
+    padding: 20px 0;
 }
 .items{
     position: relative;
@@ -170,12 +151,13 @@ h2{
     background:#FFEBEB;
 }
 .product{
-    position: absolute;
-    width: 296px;
-    height: 50px;
+    display: flex;
+    gap: 15px;
+    align-items: center;
     background: #E9A0A0;
-    left: 30px;
-    top: 100px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+    border-radius: 6px;
 }
 .add{
     position: absolute;
@@ -190,7 +172,7 @@ button{
     z-index: 3;
 }
 .auth-container{
-    backgroung: #FFEBEB;
+    background: #FFEBEB;
     display: flex;
     flex-direction: column;
     align-items: center;

@@ -8,14 +8,33 @@
     <title> Meal Ideas </title>
 </head>
 <body>
+    {% include "base/header.html" %}
+    <main>
         <div class = "page-title"> Meal Ideas </div>
-        <div class = "meal-ideas">
-            <p> Meal 1
-                <br>
-                Meal 2
-                <br>
-                Meal 3
-             </p>
+        {% if error %}
+            <p> {{ error }} </p>
+        {% endif %}
+        
+        <div class = "meal-ideas-layout">
+            {% for meal in meals %}
+            <div class = "meal-card">
+                <img src = "{{ meal.image }}" alt = "{{ meal.title }}">
+                <h3> {{ meal.title }}</h3>
+                <p> <strong> You have: </strong>
+                    {% for i in meal.usedIngredients %}
+                        {{ i.name }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                </p>
+                <p> <strong> Missing: </strong>
+                    {% for i in meal.missedIngredients %}
+                        {{ i.name }}{% if not forloop.last %},{% endif %}
+                    {% endfor %}
+                </p>
+            </div>
+            {% empty %}
+                <p> No Meals found. Try adding more ingredients. </p>
+            {% endfor %}
         </div>
+    </main>
 </body>
 </html>

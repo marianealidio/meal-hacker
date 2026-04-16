@@ -11,7 +11,52 @@
     {% include "base/header.html"%}
     <main>
         <div class = "page-title"> Library</div>
-        <div class = "meal-list"> List of Meals </div>
-    </main>    
+
+        <form method="GET" action = "{% url 'library' %}">
+            <select name="cuisine">
+                <option value =""> All Cuisines </option>
+                <option value="italian"> Italian </option>
+                <option value="asian"> Asian </option>
+                <option value="mexican"> Mexican </option>
+            </select>
+            <select name = "diet">
+                <option value =""> All Diets </option>
+                <option value ="vegetarian"> Vegetarian </option>
+                <option value="vegan"> Vegan </option>
+                <option value="gluten free"> Gluten Free </option>
+            </select>
+            <button type = "submit"> Filter </button>
+        </form>
+
+        {% if error %}
+             <p> {{ error }} </p>
+        {% endif %}
+
+        <div class ="recipe-grid">
+            {% for recipe in recipes %}
+        <div class ="recipe-card">
+            <img src ="{{ recipe.image }}" alt = "{{ recipe.title }}">
+            <h3> {{ recipe.title }}</h3>
+            <p> {{ recipe.readyInMinutes }} min </p>
+            <p><strong> You have: </strong>
+                {% for i in recipe.have %}
+                     {{ i.name }}{% if not forloop.last %}, {% endif %}
+                {% empty %}
+                     None 
+                {% endfor %}
+            </p>            
+            <p><strong> Still need: </strong>
+                {% for i in recipe.missing %}
+                     {{ i.name }}{% if not forloop.last %}, {% endif %}
+                {% empty %} 
+                      You have everything! 
+                {% endfor %}
+            </p>
+        </div>
+        {% empty %}
+           <p> No recipes found. Try changing filters.</p>
+        {% endfor %}
+    </div>
+    </main>
 </body>
 </html>

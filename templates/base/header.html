@@ -1,14 +1,25 @@
 {% load static %}
 <header class = "header">
-    <img class = "logo" src = "{% static 'img/logo.png' %}" alt = "logo">
-    <div class = "title"> Meal Hacker</div>
-    <div class = "profile-container">
+    <div class = "header-top">
+        <div class = "logo-container"> 
+            <img class = "logo" src = "{% static 'img/l.png' %}" alt = "logo">
+            <div class = "logo-title">
+                <span class = "title"> MEAL HACKER </span>
+                <span class = "tagline"> Smart Kitchen Manager </span>
+            </div>
+        </div>
+        <div class = "profile-container">
+            <div class = "profile-info"> 
+                <span class = "profile-name"> Mariane </span>
+                <span class = "account"> My account</span>
+            </div>
         <img class = "profile-icon" src = "{% static 'img/profile.jpeg' %}" alt = "profile icon" >
-        <a  class = "profile" href ="/profile">Profile</a>
+        </div>
     </div>
+    
     <nav class = "navbar">
         <a href="/"> Homepage </a>
-        <a href="{% url 'inventory'%}"> Inventory </a>
+        <a href="/inventory"> Inventory </a>
         <a href="/library"> Library </a>
         <a href="/calendar"> Calendar </a>
         <a href="/shoppinglist"> Shopping List </a>

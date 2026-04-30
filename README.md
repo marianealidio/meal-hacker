@@ -25,11 +25,26 @@ If that does not work, try `python3 --version`
 
 ## Important — `.env` file
 
-The project folder already contains an empty `.env` file. **You must paste the API keys uploaded in blackboard into it before running the project**, otherwise the app will not start.
+For security reasons, the real `.env` file is not included in the public GitHub repository. The required `.env` values will be uploaded separately on Blackboard.
 
-Open the `.env` file in any text editor (Notepad, VS Code, TextEdit) and paste the four lines uploaded in blackboard, then save
+The project needs `.env` file.
+**Please create .env file paste the API keys uploaded in blackboard into it before running the project**, 
+otherwise the app will not start.
 
-> The `.env` file is in the same folder as `manage.py`. Do not rename it or move it.
+1.Open the extracted meal-hacker-main zip in any text editor (Notepad, VS Code, TextEdit)
+2. Create file and name it .env 
+3.Paste the four lines provided in blackboard,then save.
+
+> The `.env` file should be in the same folder as `manage.py`.
+> meal-hacker-main/
+├── core/
+├── meal_hacker/
+├── static/
+├── templates/
+├── manage.py
+├── requirements.txt
+├── README.md
+└── .env
 
 ---
 ## Setup — Mac

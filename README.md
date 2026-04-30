@@ -53,15 +53,18 @@ otherwise the app will not start.
 
 **1. Download zip from github using the green button**
 Download zip 
-Navigate to meal-hacker
-```
-cd meal-hacker
-```
+
 Open **Terminal** and run these commands one at a time:
+
+Navigate to meal-hacker-main
+ex. It is in Downloads
+```
+cd ~/Downloads/meal-hacker-main
+```
 
 **2. Create a virtual environment**
 ```
-python3 -m venv venv
+python -m venv venv
 ```
 
 **3. Activate the virtual environment**
@@ -70,9 +73,10 @@ source venv/bin/activate
 ```
 You will see `(venv)` at the start of the terminal line — keep this active for all remaining steps.
 
-**4. Install dependencies**
+**4. Install requirements**
 ```
-pip install django==4.2.27 requests python-decouple
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
 **5. Paste the API keys into the `.env` file**
@@ -81,12 +85,12 @@ Open the `.env` file  and paste the four lines provided in blackboard. Save the 
 
 **6. Set up the database**
 ```
-python3 manage.py migrate
+python manage.py migrate
 ```
 
 **7. Run the server**
 ```
-python3 manage.py runserver
+python manage.py runserver
 ```
 
 **8. Open the website**
@@ -99,11 +103,14 @@ http://127.0.0.1:8000/
 
 **1. Download zip from github using the green button**
 Download zip 
-Navigate to meal-hacker
-```
-cd meal-hacker
-```
+
 Open **Terminal** and run these commands one at a time:
+
+Navigate to meal-hacker-main
+ex. It is in Downloads
+```
+cd ~/Downloads/meal-hacker-main
+```
 
 **2. Create a virtual environment**
 ```
@@ -116,9 +123,10 @@ venv\Scripts\activate
 ```
 You will see `(venv)` at the start of the terminal line — keep this active for all remaining steps.
 
-**4. Install dependencies**
+**4. Install requirements**
 ```
-pip install django==4.2.27 requests python-decouple
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
 ```
 
 **5. Paste the API keys into the `.env` file**

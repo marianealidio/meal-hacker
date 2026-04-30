@@ -36,6 +36,8 @@ otherwise the app will not start.
 3.Paste the four lines provided in blackboard,then save.
 
 > The `.env` file should be in the same folder as `manage.py`.
+
+
 > meal-hacker-main/
 ├── core/
 ├── meal_hacker/

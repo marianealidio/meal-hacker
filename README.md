@@ -158,7 +158,7 @@ If the Spoonacular daily limit is reached, recipe pages will show a fallback mes
 ## Troubleshooting
 
 **App crashes on `migrate` with `SECRET_KEY not found`**
-The `.env` file has not been filled in yet. Open it and paste the four lines from the section above.
+The `.env` file has not been filled in yet. Open it and paste the keys provided.
 
 **`python` command not found on Mac**
 Use `python3` instead of `python` for all commands.

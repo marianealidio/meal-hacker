@@ -126,18 +126,6 @@ http://127.0.0.1:8000/
 ---
 
 
-## Using the website
-
-1. Click **Sign Up** to create an account
-2. Go to **Inventory** and add at least 3 ingredients (e.g. chicken, garlic, onion) — choose a category (Pantry / Fridge / Freezer) and optionally set an expiry date
-3. Go to **Meal Ideas** to see recipe suggestions based on your inventory
-4. Visit the **Library** to browse recipes, filter by cuisine or diet, and add meals to your calendar
-5. The **Homepage** shows your best meal suggestion of the day, expiring items, a notes section, and an AI kitchen chatbot
-6. The **Calendar** shows your planned meals for the current week
-7. The **Shopping List** collects missing ingredients automatically when you add meals from the Library, or add items manually
-
----
-
 ## API notes
 
 | API | Purpose | Limit |
@@ -162,6 +150,17 @@ Use `python3` instead of `python` for all commands.
 python manage.py runserver 8080
 ```
 Then open `http://127.0.0.1:8080/`
+
+---
+## Using the website
+
+1. Click **Sign Up** to create an account
+2. Go to **Inventory** and add at least 3 ingredients (e.g. chicken, garlic, onion) — choose a category (Pantry / Fridge / Freezer) and optionally set an expiry date
+3. Go to **Meal Ideas** to see recipe suggestions based on your inventory
+4. Visit the **Library** to browse recipes, filter by cuisine or diet, and add meals to your calendar
+5. The **Homepage** shows your best meal suggestion of the day, expiring items, a notes section, and an AI kitchen chatbot
+6. The **Calendar** shows your planned meals for the current week
+7. The **Shopping List** collects missing ingredients automatically when you add meals from the Library, or add items manually
 
 ---
 

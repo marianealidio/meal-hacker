@@ -1,0 +1,30 @@
+{% load static %}
+<footer class = "footer">
+    <div class = "footer-content">
+        <div class = "footer-left">
+            <img class = "logo" src = "{% static 'img/logo2.png' %}" alt = "logo">
+            <h3 class = "footer-title"> Meal Hacker</h3>
+            <p class = "footer-text"> Smart Recipe Suggestion, Meal Planning and Inventory Management </p>
+        </div>
+
+        <div class = "footer-links">
+            <h4> Quick Links</h4>
+            <a href="{% url 'homepage' %}"> Homepage </a>
+            <a href="{% url 'inventory' %}"> Inventory </a>
+            <a href="{% url 'library' %}"> Library </a>
+            <a href="{% url 'calendar' %}"> Calendar </a>
+            <a href="{% url 'shoppinglist' %}"> Shopping List </a>
+            <a href="{% url 'profile' %}"> Profile </a>
+        </div>
+        
+        <div class = "footer-contact">
+            <h4> Support </h4>
+            <p> Email: </p>
+            <a href="mailto:w1974040@westminster.ac.uk"> w1974040@westminster.ac.uk</a>
+        </div>
+        <div class ="footer-bottom">
+            <p> Created by Mariane Alidio - BSc Computer Science Final Year Project</p>
+            <p> © 2026 Meal Hacker </p>
+        </div>
+    </div>
+</footer>

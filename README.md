@@ -77,7 +77,7 @@ pip install django==4.2.27 requests python-decouple
 
 **5. Paste the API keys into the `.env` file**
 
-Open the `.env` file (already in the project folder) in any text editor and paste the four lines shown in the section above. Save the file.
+Open the `.env` file  and paste the four lines provided in blackboard. Save the file.
 
 **6. Set up the database**
 ```
@@ -123,7 +123,8 @@ pip install django==4.2.27 requests python-decouple
 
 **5. Paste the API keys into the `.env` file**
 
-Open the `.env` file (already in the project folder) in Notepad and paste the four lines shown in the section above. Save the file.
+Open the `.env` file  and paste the four lines provided in blackboard. Save the file.
+
 
 **6. Set up the database**
 ```

@@ -2,7 +2,7 @@
 <header class = "header">
     <div class = "header-top">
         <div class = "logo-container"> 
-            <img class = "logo" src = "{% static 'img/l.png' %}" alt = "logo">
+            <img class = "logo" src = "{% static 'img/logo2.png' %}" alt = "Meal Hacker Logo">
             <div class = "logo-title">
                 <span class = "title"> MEAL HACKER </span>
                 <span class = "tagline"> Smart Kitchen Manager </span>
@@ -10,18 +10,18 @@
         </div>
         <div class = "profile-container">
             <div class = "profile-info"> 
-                <span class = "profile-name"> Mariane </span>
-                <span class = "account"> My account</span>
+                <span class = "profile-name">{{ request.user.username }} </span>
+                <a href ="{% url 'profile' %}" class = "account"> My account</a>
             </div>
         <img class = "profile-icon" src = "{% static 'img/profile.jpeg' %}" alt = "profile icon" >
         </div>
     </div>
     
     <nav class = "navbar">
-        <a href="/"> Homepage </a>
-        <a href="/inventory"> Inventory </a>
-        <a href="/library"> Library </a>
-        <a href="/calendar"> Calendar </a>
-        <a href="/shoppinglist"> Shopping List </a>
+        <a href="{% url 'homepage' %}"> Homepage </a>
+        <a href="{% url 'inventory' %}"> Inventory </a>
+        <a href="{% url 'library' %}"> Library </a>
+        <a href="{% url 'calendar' %}"> Calendar </a>
+        <a href="{% url 'shoppinglist' %}"> Shopping List </a>
     </nav>
 </header>

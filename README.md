@@ -32,8 +32,11 @@ The project needs `.env` file.
 otherwise the app will not start.
 
 1.Open the extracted meal-hacker-main zip in any text editor (Notepad, VS Code, TextEdit)
-2. Create file and name it .env 
+
+2. Create file and name it .env
+   
 3.Paste the four lines provided in blackboard,then save.
+
 
 > The `.env` file should be in the same folder as `manage.py`.
 
@@ -57,14 +60,15 @@ Download zip
 Open **Terminal** and run these commands one at a time:
 
 Navigate to meal-hacker-main
-ex. It is in Downloads
+
+Ex. It is in Downloads :
 ```
 cd ~/Downloads/meal-hacker-main
 ```
 
 **2. Create a virtual environment**
 ```
-python -m venv venv
+python3 -m venv venv
 ```
 
 **3. Activate the virtual environment**
@@ -107,9 +111,10 @@ Download zip
 Open **Terminal** and run these commands one at a time:
 
 Navigate to meal-hacker-main
-ex. It is in Downloads
+
+Ex. It is in Downloads
 ```
-cd ~/Downloads/meal-hacker-main
+cd %USERPROFILE%\Downloads\meal-hacker-main
 ```
 
 **2. Create a virtual environment**
@@ -118,6 +123,7 @@ python -m venv venv
 ```
 
 **3. Activate the virtual environment**
+
 ```
 venv\Scripts\activate
 ```
@@ -166,7 +172,7 @@ If the Spoonacular daily limit is reached, recipe pages will show a fallback mes
 ## Troubleshooting
 
 **App crashes on `migrate` with `SECRET_KEY not found`**
-The `.env` file has not been filled in yet. Open it and paste the keys provided.
+The `.env` file has not been filled in yet. Open it and paste the keys provided on Blackboard.
 
 **`python` command not found on Mac**
 Use `python3` instead of `python` for all commands.

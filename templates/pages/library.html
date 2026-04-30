@@ -8,55 +8,105 @@
     <title>Library</title>
 </head>
 <body>
-    {% include "base/header.html"%}
+    {% include "base/header.html" %}
     <main>
         <div class = "page-title"> Library</div>
 
-        <form method="GET" action = "{% url 'library' %}">
+        <!-- Recipe Filter form -->
+        <form  class = "library-filter" method="GET" action = "{% url 'library' %}">
+
+            <!-- Cuisine filter -->
             <select name="cuisine">
                 <option value =""> All Cuisines </option>
                 <option value="italian"> Italian </option>
                 <option value="asian"> Asian </option>
                 <option value="mexican"> Mexican </option>
+                <option value="indian"> Indian </option>
+                <option value="american"> American </option>
             </select>
+
+            <!-- Diet Filter -->
             <select name = "diet">
                 <option value =""> All Diets </option>
                 <option value ="vegetarian"> Vegetarian </option>
                 <option value="vegan"> Vegan </option>
                 <option value="gluten free"> Gluten Free </option>
             </select>
+
+            <!-- Meat filter -->
+            <select name = "query">
+                <option value =""> All Meat </option>
+                <option value ="chicken"> Chicken </option>
+                <option value="beef"> Beef </option>
+                <option value="salmon"> Salmon </option>
+                <option value="pork"> Pork </option>
+                <option value="lamb"> Lamb </option>
+                <option value="fish"> Fish </option>
+                <option value="shrimp"> Shrimp </option>
+                <option value="turkey"> Turkey </option>
+            </select>
+
+            <!-- Extra ingredients input -->
+            <input type = "text" name = "includeIngredients" placeholder = "Add ingredients you want to include">
+            <!-- Filter and clear button -->
             <button type = "submit"> Filter </button>
+            <a class = "clear-filter" href = "{% url 'library' %}"> Clear </a>
         </form>
 
+        <!-- Shows API error message if recipes cannot be loaded -->
         {% if error %}
-             <p> {{ error }} </p>
+            <p> {{ error }} </p>
         {% endif %}
 
+        <!-- Recipe result card -->
         <div class ="recipe-grid">
+
+            <!-- Loops through recipes returned from library view -->
             {% for recipe in recipes %}
-        <div class ="recipe-card">
-            <img src ="{{ recipe.image }}" alt = "{{ recipe.title }}">
-            <h3> {{ recipe.title }}</h3>
-            <p> {{ recipe.readyInMinutes }} min </p>
-            <p><strong> You have: </strong>
-                {% for i in recipe.have %}
-                     {{ i.name }}{% if not forloop.last %}, {% endif %}
+                <div class ="recipe-card">
+                    <a href="{% url 'recipe_detail' recipe.id %}">
+                        <img src ="{{ recipe.image }}" alt = "{{ recipe.title }}">
+                        <h3> {{ recipe.title }}</h3>
+                    </a>
+                    <p> {{ recipe.readyInMinutes }} min </p>
+
+                    <p><strong> You have: </strong>
+                        {% for i in recipe.have %}
+                            {{ i.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            None 
+                        {% endfor %}
+                    </p>            
+                    <p><strong> Still need: </strong>
+                        {% for i in recipe.missing %}
+                            {{ i.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %} 
+                            You have everything! 
+                        {% endfor %}
+                    </p>
+
+                    <!-- Add selected recipe to calendar and missing ingredients to shopping list -->
+                    <form method = "POST" action ="{% url 'add_to_calendar' %}">
+                        {% csrf_token %}
+                        <input type = "hidden" name = "recipe_title" value = "{{ recipe.title}}">
+                        <input type = "hidden" name = "recipe_image" value = "{{ recipe.image}}">
+                        <input type = "hidden" name = "recipe_id" value = "{{ recipe.id}}">
+
+                        <!-- Send missing ingredients -->
+                        {% for i in recipe.missing %}
+                            <input type="hidden" name="ingredients" value="{{ i.name }}">
+                        {% endfor %}
+                        <input type = "date" name = "planned_date" required>
+                        <button type ="submit"> Add to Calendar </button>
+                    </form>
+                </div>
+
+                <!-- Fallback message when no meals match -->
                 {% empty %}
-                     None 
+                    <p> No recipes found. Try changing filters.</p>
                 {% endfor %}
-            </p>            
-            <p><strong> Still need: </strong>
-                {% for i in recipe.missing %}
-                     {{ i.name }}{% if not forloop.last %}, {% endif %}
-                {% empty %} 
-                      You have everything! 
-                {% endfor %}
-            </p>
         </div>
-        {% empty %}
-           <p> No recipes found. Try changing filters.</p>
-        {% endfor %}
-    </div>
     </main>
+    {% include "base/footer.html" %}
 </body>
 </html>

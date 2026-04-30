@@ -9,15 +9,27 @@
 </head>
 <body>
         <div class = "page-title"> Profile </div>
-        <div class = "user-profile">
-            <p> Name
-                <br>
-                Email
-                <br>
-                Settings
-             </p>
-             <a href="{% url 'login'%}"><button type="button"> Log Out </button></a>
 
+        <!-- User account details -->
+        <div class = "user-profile">
+            <div class = "container-header"> Account Details </div>
+            <div class = "container-body"> 
+                <!-- Shows the logged in user's name -->
+                <div class = "profile-field">
+                    <strong> Name: </strong>
+                    <p> {{ user.username }}</p>
+                </div>
+
+                <!-- Logout and backhome button-->
+                <div class = "profile-actions" >
+                    <a href="{% url 'logout' %}">
+                        <button class ="logout-button"> Log Out </button>
+                    </a>
+                    <a href="{% url 'homepage' %}">
+                        <button class ="back-button"> Back </button>
+                    </a>       
+                </div>     
+            </div>
         </div>
 </body>
 </html>

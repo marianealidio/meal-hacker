@@ -11,30 +11,43 @@
     {% include "base/header.html" %}
     <main>
         <div class = "page-title"> Meal Ideas </div>
+
+        <!-- Shows API or ingredients error message -->
         {% if error %}
             <p> {{ error }} </p>
         {% endif %}
-        
+        <!-- Meal suggestion card layout -->
         <div class = "meal-ideas-layout">
+            <!-- Loops through meals returned from the generated meals view -->
             {% for meal in meals %}
-            <div class = "meal-card">
-                <img src = "{{ meal.image }}" alt = "{{ meal.title }}">
-                <h3> {{ meal.title }}</h3>
-                <p> <strong> You have: </strong>
-                    {% for i in meal.usedIngredients %}
-                        {{ i.name }}{% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                </p>
-                <p> <strong> Missing: </strong>
-                    {% for i in meal.missedIngredients %}
-                        {{ i.name }}{% if not forloop.last %},{% endif %}
-                    {% endfor %}
-                </p>
-            </div>
+                <div class = "meal-card">
+                    <img src = "{{ meal.image }}" alt = "{{ meal.title }}">
+                    <h3> {{ meal.title }}</h3>
+
+                    <!-- Shows ingredients the user already has -->
+                    <p> <strong> You have: </strong>
+                        {% for i in meal.usedIngredients %}
+                            {{ i.name }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    </p>
+
+                    <!-- Shows ingredients still needed for the recipe -->
+                    <p> 
+                        <strong> Missing: </strong>
+                        {% for i in meal.missedIngredients %}
+                            {{ i.name }}{% if not forloop.last %},{% endif %}
+                        {% endfor %}
+                    </p>
+                    <!-- Opens the full recipe details page -->
+                    <a href="{% url 'recipe_detail' meal.id %}" class="view-recipe-button"> View Recipe </a>
+                </div>
+
+            <!-- Fallback message when no meals are found -->
             {% empty %}
                 <p> No Meals found. Try adding more ingredients. </p>
             {% endfor %}
         </div>
     </main>
+    {% include "base/footer.html" %}
 </body>
 </html>

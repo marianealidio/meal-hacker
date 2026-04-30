@@ -8,14 +8,100 @@
     <title>Home Page</title>
 </head>
 <body>
-    {% include "base/header.html"%}
+    {% include "base/header.html" %}
     <main>
         <div class = "page-title"> Homepage </div>
-        <div class = dashboard>
-        <div class = "best-meal-suggestion"> Best Meal Suggestion</div>
-        <div class = "expiring-items"> Expiring Items</div>
-        <div class = "reminders"> Reminders</div>
-        </div>
-    </main>    
+
+        <!-- Main dashboard layout -->
+        <div class = "dashboard">
+            <!-- Best meal suggestion-->
+            <div class = "best-meal-suggestion"> 
+                <div class = "container-header"> Best Meal Suggestion</div>
+                <div class = "container-body">
+
+                    <!-- Shows meal suggestion if the API returns a result -->
+                    {% if best_meal %}
+                    <img class ="meal-image" src = "{{ best_meal.image }}" >
+                    <div class = "meal-name"> {{ best_meal.title }}</div>
+
+                    <!-- Shows how many ingredients are used and missing-->
+                    <div class = "item-info-container">
+                        <div class = "item-info">
+                            <span class ="info-number"> {{ best_meal.missedIngredientCount }} </span>
+                            <span class = "info-label"> Missing </span>
+                        </div>
+                        <div class = "item-info">
+                            <span class ="info-number"> {{ best_meal.usedIngredientCount }} </span>
+                            <span class = "info-label"> Ingredients Used</span>
+                        </div>
+                    </div>
+
+                    <!-- Opens the full recipe detail page -->
+                    <a href = "{% url 'recipe_detail' best_meal.id %}" class="view-recipe-button"> View Full Recipe</a>
+                    {% else %}
+                        <p> You don't have enough ingredients. Add atleast 3 in inventory </p>
+                        <p> It could also be because API limit is reached</p>
+                    {% endif %}    
+
+                </div>
+            </div>
+
+            <!-- Shows items that are close to expiry -->
+            <div class = "expiring-items"> 
+                <div class = "container-header"> Expiring Items</div>
+                <div class = "container-body">
+
+                    <!-- Loops through the inventory items expiring soon -->
+                    {% for item in expiring_items %}
+                    <div class="expiry-list">
+                        <div class = "expiry-name"> {{ item.name }}</div>
+                        <span class = "expiry-date">{{ item.expiry_date }}</span>
+                    </div>
+                    {% empty %}
+                        <p> No items expiring soon. </p>
+                    {% endfor %}    
+                </div>
+          </div>
+
+          <!-- Notes section -->
+          <div class = "reminders">
+            <div class = "container-header"> Notes </div>
+            <div class = "container-body">
+
+                <!-- Saves the user's homepage -->
+                <form method="POST" action ="{% url 'save_reminders' %}">
+                    {% csrf_token %}
+                    <textarea name="note" placeholder="Write down ideas, notes, or reminders :> ">{{ reminder_note }}</textarea>
+                    <button type ="submit"> Save </button>
+                </form>
+            </div>
+          </div>
+
+          <!-- Kitchen assistant chatbot -->
+          <div class = "chatbot-section"> 
+            <div class = "container-header"> Kitchen Assistant </div>
+            <div class = "container-body">
+
+                <!-- Shows the latest chatbot question and reply -->
+                {% if chat_reply %}
+                    <div class ="chat-history">
+                        <div class = "chat-question"> You: {{ chat_question }}</div>
+                        <div class ="chat-reply"> {{ chat_reply }} </div>
+                </div>
+                {% endif %}
+
+                <!-- Sends a new question to the chatbot view -->
+                <form method = "POST" action = "{% url 'chatbot' %}">
+                    {% csrf_token %}
+                    <input type = "text" name="message" placeholder="I'm your kitchen assistant.Ask me anything! " required>
+                    <button type = "submit"> Ask </button>
+                </form>
+            </div>
+                 
+          </div>
+      </div>
+    </main>  
+    {% include "base/footer.html" %}
+  
 </body>
 </html>

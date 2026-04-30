@@ -8,19 +8,45 @@
     <title> Shopping List</title>
 </head>
 <body>
-    {% include "base/header.html"%}
+    {% include "base/header.html" %}
     <main>
         <div class = "page-title"> Shopping List </div>
+
+        <!-- Shopping list and add item layout -->
         <div class="inventory-shopping-layout">
-            <div class = "basket"> Basket </div>
+
+            <!-- Shopping list items -->
+            <div class="basket">
+                <h2> My List</h2>
+                <!-- Loops through items -->
+                {% for item in items %}
+                    <div class = "product">
+                        <span class = "item-name"> {{ item.ingredient_name }}</span>
+                        <div class = "item-details">
+                            <span class = "item-quantity"> {{ item.quantity }}</span>
+                            <!-- Delete item from the shopping list -->
+                            <a href = "{% url 'delete_shopping_item' item.id %}"> Delete </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p> Your shopping list is empty </p>
+                {% endfor %}
+            </div>
+
+            <!-- Add items to shopping list form -->
             <div class = "items">
-                <h2> Ingredients </h2>
-                <div class = "product"> example: chicken </div>
-                <div class = "add">
-                    <button type="button"> add </button>
-                </div>
+                <h2> Add Ingredients </h2>
+                <form method = "POST" action ="{% url 'shoppinglist' %}">
+                    {% csrf_token %}
+                    <!-- Hidden field used by the view to identify manually added and automatic -->
+                    <input type = "hidden" name = "add_item" value="1">
+                    <input type = "text" name = "ingredient_name" placeholder = "ex. egg" required>
+                    <input type = "text" name = "quantity" placeholder = "ex. 2">
+                    <button type="submit"> Add </button>
+                </form>
             </div>
         </div>
     </main>    
+    {% include "base/footer.html" %}
 </body>
 </html>

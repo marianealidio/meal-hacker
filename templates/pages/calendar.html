@@ -5,13 +5,52 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/main.css' %}">
-    <title> Calendar</title>
+    <title>Calendar</title>
 </head>
 <body>
-    {% include "base/header.html"%}
+    {% include "base/header.html" %}
     <main>
-        <div class = "page-title"> Calendar </div>
-        <div class = "calendar"> Calendar that shows one week  </div>
-    </main>    
+        <div class="page-title">Calendar</div>
+
+        <!--- Weekly Calendar layout -->
+        <div class="calendar">
+
+            <!-- Loops through 7 days created in calendar view -->
+            {% for day in days %}
+                <div class="day-col {% if day.date == today %}today{% endif %}">
+
+                    <!-- Shows the day and highlights today -->
+                    <div class="day-header">
+                        {{ day.date|date:"D d M" }}
+                        {% if day.date == today %} 
+                        - Today 
+                        {% endif %}
+                    </div>
+
+                    <!-- Show meals planned for each day-->
+                    {% for meal in day.meals %}
+                    <div class="meal-entry">
+                        <p>{{ meal.recipe_title }}</p>
+
+                        <!-- Recipe detail link is shown when recipe id is available-->
+                        {% if meal.recipe_id %}
+                            <a href="{% url 'recipe_detail' meal.recipe_id %}">View Recipe</a>
+                        {% endif %}
+
+                        <!-- Removes meal from the calendar -->
+                        <a href="{% url 'remove_meal' meal.id %}">Remove</a>
+
+                    </div>
+
+                    <!--Fallback message when no meals are planned for the day -->
+                    {% empty %}
+                        <p class="no-meal">No meal planned</p>
+                    {% endfor %}
+
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+    {% include "base/footer.html" %}
 </body>
 </html>

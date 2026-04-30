@@ -9,15 +9,21 @@
 </head>
 <body>
     <main>
-    <div class = "auth-container">
-        <img class = "form-logo" src = "{% static 'img/logo2.png' %}" alt = "logo">
-        <div class = "page-title"> Sign Up </div>
-        <form class= "signup-form" method="POST">
-            {% csrf_token %}
-            {{ form.as_p}}
-            <button type="submit"> Sign Up</button>
-        </form>
-        <p class = "auth-switch"> Already have an account? <a href ="{% url 'login' %}"> Log In </a></p>
+        <!-- Sign up form container -->
+        <div class = "auth-container">
+            <img class = "form-logo" src = "{% static 'img/logo2.png' %}" alt = "logo">
+            <div class = "page-title"> Sign Up </div>
+
+            <!-- Registration form using Django's user creation form -->
+            <form class= "signup-form" method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit"> Sign Up</button>
+            </form>
+            <!-- Link back to login page -->
+            <p class = "auth-switch"> 
+                Already have an account? <a href ="{% url 'login' %}"> Log In </a>
+            </p>
         </div>
     </main>    
 </body>

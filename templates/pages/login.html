@@ -9,16 +9,23 @@
 </head>
 <body>
     <main>
+        <!-- Log in form container -->
         <div class="auth-container">
-            <img class = "form-logo" src = "{% static 'img/logo2.png' %}" alt = "logo">
+            <img class = "form-logo" src = "{% static 'img/logo2.png' %}" alt = "Meal Hacker Logo">
             <div class = "page-title"> Log In </div>
+
+            <!-- Login form using Django authentication form -->
             <form class ="login-form" method="POST">
                 {% csrf_token %}
                 {{ form.as_p }}
                 <button type="submit">Log in</button>
             </form>
-            <p class = "auth-switch"> Dont have an account? <a href ="{% url 'signup' %}"> Sign Up </a></p>
+            <!-- Link to sign up page -->
+            <p class = "auth-switch"> 
+                Don't have an account? <a href ="{% url 'signup' %}"> Sign Up </a>
+            </p>
         </div>
-    </main>    
+    </main> 
+    {% include "base/footer.html" %}   
 </body>
 </html>

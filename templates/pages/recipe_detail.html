@@ -1,0 +1,45 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/main.css' %}">
+    <title>{{ recipe.title }}</title>
+</head>
+<body>
+    {% include "base/header.html" %}
+    <main>
+        {% if recipe %}
+            <!-- Full recipe details -->
+            <div class="recipe-detail">
+                <img src="{{ recipe.image }}" alt="{{ recipe.title }}">
+                <h1>{{ recipe.title }}</h1>
+
+                <!-- Shows preparation time and serving size -->
+                <p>{{ recipe.readyInMinutes }} min · Serves {{ recipe.servings }}</p>
+
+                <!-- Recipe ingredients list -->
+                <h2>Ingredients</h2>
+                <ul>
+                    {% for i in recipe.extendedIngredients %}
+                        <li>{{ i.original }}</li>
+                    {% endfor %}
+                </ul>
+
+                <!-- Recipe cooking instructions -->
+                <h2>Instructions</h2>
+                <p>{{ recipe.instructions|safe }}</p>
+
+                <!-- Link back to recipe library -->
+                <a href="{% url 'library' %}">Back to Library</a>
+            </div>
+
+        <!-- Fallback message if recipe details cannot be loaded -->
+        {% else %}
+            <p>Could not load recipe. Please try again.</p>
+        {% endif %}
+    </main>
+    {% include "base/footer.html" %}
+</body>
+</html>

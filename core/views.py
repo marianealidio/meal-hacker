@@ -196,7 +196,7 @@ def generatedmeals(request):
     items = InventoryItem.objects.filter(user=request.user)
     if items.count() < 3:
         return render (request, 'pages/generatedmeals.html', {
-            'error': 'Add atleast 3 ingredients to your inventory first. '
+            'error': 'Add at least 3 ingredients to your inventory first.'
         })
 
     #Common pantry ingredients
@@ -234,7 +234,7 @@ def generatedmeals(request):
         #Converts the API response into python data
         meals = resp.json()
         
-        #Keeps meals that use atleast two ingredients from the user's inventory
+        #Keeps meals that use at least two ingredients from the user's inventory
         meals = [ 
             meal for meal in meals 
             if len(meal.get('usedIngredients', [])) >=2
@@ -251,7 +251,7 @@ def generatedmeals(request):
     except Exception:
         meals = []
         return render (request, 'pages/generatedmeals.html', {
-            'error': "Could not load suggestions right now. It might API reached credit limit"
+            'error': "Could not load suggestions right now. The API may have reached its credit limit."
         })
     return render(request, 'pages/generatedmeals.html',
     {'meals':meals
@@ -292,7 +292,7 @@ def library(request):
         resp.raise_for_status()
         recipes = resp.json().get('results', [])
     except Exception:
-        error = 'Could not load suggestions right now. It might be API reached creadit limit'
+        error = 'Could not load suggestions right now. The API may have reached its credit limit.'
 
 
     #Compares each recipe's ingredients with the user's inventory
@@ -347,7 +347,7 @@ def chatbot(request):
 
         #Gets the user's question from the form
         user_message = request.POST.get('message', '').strip()
-        reply = "Sorry, I couldn't answer that. Plese try again"
+        reply = "Sorry, I couldn't answer that. Please try again."
         try:
             #Sends the question to Groq
             resp = requests.post(
@@ -370,7 +370,7 @@ def chatbot(request):
             #Saves the chatbot reply 
             reply = resp.json()['choices'][0]['message']['content']
         except Exception as e:
-            reply = 'Sorry, I could not anwer right now.Please try again'
+            reply = 'Sorry, I could not answer right now. Please try again.'
 
         #Stores the question and answer temporarily in the session
         request.session['chat_reply'] = reply

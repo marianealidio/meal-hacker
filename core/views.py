@@ -316,21 +316,30 @@ def library(request):
 def add_to_calendar(request):
     if request.method == 'POST':
 
-        #Save the selected meal to user's meal calendar
-        MealPlan.objects.create(
-            user=request.user,
-            recipe_id=request.POST.get('recipe_id', 0),
-            recipe_title=request.POST.get('recipe_title'),
-            recipe_image=request.POST.get('recipe_image'),
-            planned_date=request.POST.get('planned_date'),
-        )
-        #Adds missing ingredients to the user's shopping list
-        for name in request.POST.getlist('ingredients'):
-            ShoppingListItem.objects.create(
+        #Validate inputs before touching the database so a missing / malformed
+        #date or a non-numeric recipe id can't raise an unhandled 500.
+        planned_date = parse_date(request.POST.get('planned_date') or '')
+        try:
+            recipe_id = int(request.POST.get('recipe_id') or 0)
+        except (TypeError, ValueError):
+            recipe_id = 0
+
+        #Only save the meal (and its auto shopping items) when the date is usable
+        if planned_date:
+            MealPlan.objects.create(
                 user=request.user,
-                ingredient_name=name,
-                source='auto'
+                recipe_id=recipe_id,
+                recipe_title=request.POST.get('recipe_title') or '',
+                recipe_image=request.POST.get('recipe_image', ''),
+                planned_date=planned_date,
             )
+            #Adds missing ingredients to the user's shopping list
+            for name in request.POST.getlist('ingredients'):
+                ShoppingListItem.objects.create(
+                    user=request.user,
+                    ingredient_name=name,
+                    source='auto'
+                )
     return redirect('calendar')
 
 #Loads full recipe details from Spoonacular

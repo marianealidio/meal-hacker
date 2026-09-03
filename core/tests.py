@@ -347,17 +347,17 @@ class MealGenerationTests(TestCase):
         self.assertLess(body.index("ManyUsed"), body.index("MidUsed"))
         self.assertLess(body.index("MidUsed"), body.index("FewUsed"))
 
-    @expectedFailure
-    def test_api_meal_missing_id_field_crashes_page(self):           # MEAL-011 / ERR-005 -> MH-B004 (OPEN)
-        """A Spoonacular meal object with no 'id' makes generatedmeals.html render
-        {% url 'recipe_detail' meal.id %} with an empty argument -> NoReverseMatch
-        -> unhandled HTTP 500 (the view try/except does not wrap render()).
-        Expected: the page degrades to 200 and shows the meal without a link."""
+    def test_api_meal_missing_id_field_degrades_gracefully(self):    # MEAL-011 / ERR-005  (regression: MH-B004)
+        """A Spoonacular meal object with no 'id' must not crash generatedmeals.html.
+        The 'View Recipe' link is now guarded by {% if meal.id %}, so the page
+        renders (200) and shows the meal title without a link."""
         self._add("chicken", "rice", "onion")
         payload = [{"title": "NoId", "usedIngredients": [1, 2], "missedIngredients": []}]
         with mock.patch("core.views.requests.get", return_value=_fake_response(payload)):
             r = self.c.get(reverse("generatedmeals"))
         self.assertEqual(r.status_code, 200)
+        self.assertContains(r, "NoId")
+        self.assertNotContains(r, "View Recipe")
 
 
 # ---------------------------------------------------------------------------

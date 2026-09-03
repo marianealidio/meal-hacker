@@ -38,8 +38,10 @@
                             {{ i.name }}{% if not forloop.last %},{% endif %}
                         {% endfor %}
                     </p>
-                    <!-- Opens the full recipe details page -->
+                    <!-- Opens the full recipe details page (only when the API gave us an id) -->
+                    {% if meal.id %}
                     <a href="{% url 'recipe_detail' meal.id %}" class="view-recipe-button"> View Recipe </a>
+                    {% endif %}
                 </div>
 
             <!-- Fallback message when no meals are found -->

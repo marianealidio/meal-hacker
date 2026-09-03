@@ -19,7 +19,7 @@ To check Python is installed, open a terminal and run:
 ```
 python --version
 ```
-If that does not work, try `python3 --version`
+If that does not work, try `python3 --version`.
 
 ---
 
@@ -27,15 +27,15 @@ If that does not work, try `python3 --version`
 
 For security reasons, the real `.env` file is not included in the public GitHub repository. The required `.env` values will be uploaded separately on Blackboard.
 
-The project needs `.env` file.
-**Please create .env file paste the API keys uploaded in blackboard into it before running the project**, 
+The project needs a `.env` file.
+**Please create a `.env` file and paste the API keys uploaded on Blackboard into it before running the project**,
 otherwise the app will not start.
 
-1.Open the extracted meal-hacker-main zip in any text editor (Notepad, VS Code, TextEdit)
+1. Open the extracted meal-hacker-main zip in any text editor (Notepad, VS Code, TextEdit)
 
 2. Create file and name it .env
    
-3.Paste the four lines provided in blackboard,then save.
+3. Paste the four lines provided on Blackboard, then save.
 
 
 > The `.env` file should be in the same folder as `manage.py`.
@@ -85,7 +85,7 @@ python -m pip install -r requirements.txt
 
 **5. Paste the API keys into the `.env` file**
 
-Open the `.env` file  and paste the four lines provided in blackboard. Save the file.
+Open the `.env` file and paste the four lines provided on Blackboard. Save the file.
 
 **6. Set up the database**
 ```
@@ -137,7 +137,7 @@ python -m pip install -r requirements.txt
 
 **5. Paste the API keys into the `.env` file**
 
-Open the `.env` file  and paste the four lines provided in blackboard. Save the file.
+Open the `.env` file and paste the four lines provided on Blackboard. Save the file.
 
 
 **6. Set up the database**
@@ -165,7 +165,7 @@ http://127.0.0.1:8000/
 | Spoonacular | Recipe suggestions, library, meal details | 50 points / day |
 | Groq (LLaMA 3.1) | AI kitchen chatbot | Free tier |
 
-If the Spoonacular daily limit is reached, recipe pages will show a fallback message.Please try again the following day.
+If the Spoonacular daily limit is reached, recipe pages will show a fallback message. Please try again the following day.
 
 ---
 

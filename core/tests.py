@@ -231,14 +231,21 @@ class InventoryTests(TestCase):
         self.assertIsNotNone(obj)
         self.assertEqual(len(obj.name), 300)   # max_length=100 is not enforced on write
 
-    @expectedFailure
-    def test_invalid_expiry_date_should_not_crash(self):             # INV-020 / VAL-005  -> MH-B002 (OPEN)
-        """A non-date string in expiry_date is passed straight to .create(); Django's
-        DateField raises ValidationError inside .save(); the view has no try/except,
-        so the request returns an unhandled HTTP 500. Expected: no server error."""
+    def test_invalid_expiry_date_does_not_crash(self):               # INV-020 / VAL-005  (regression: MH-B002)
+        """A non-date string in expiry_date must not 500. The view now parses it with
+        parse_date(); an unparseable value becomes None and the item is still created
+        from the valid name."""
         r = self.c.post(reverse("inventory"), {"name": "BadDate", "category": "Fridge",
                                                "expiry_date": "not-a-date"})
-        self.assertIn(r.status_code, (200, 302))     # currently raises -> HTTP 500
+        self.assertEqual(r.status_code, 302)
+        obj = InventoryItem.objects.get(user=self.user, name="BadDate")
+        self.assertIsNone(obj.expiry_date)
+
+    def test_valid_expiry_date_is_stored(self):                      # INV-015  (regression guard for MH-B002 fix)
+        self.c.post(reverse("inventory"), {"name": "GoodDate", "category": "Fridge",
+                                           "expiry_date": "2026-12-25"})
+        self.assertEqual(str(InventoryItem.objects.get(user=self.user, name="GoodDate").expiry_date),
+                         "2026-12-25")
 
 
 # ---------------------------------------------------------------------------

@@ -4,6 +4,7 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from .models import InventoryItem, MealPlan, ShoppingListItem,Reminder
 import requests
+from django.utils.dateparse import parse_date
 from django.conf import settings
 from datetime import date, timedelta
 
@@ -83,12 +84,19 @@ def inventory(request):
     if request.method == 'POST':
         name = request.POST.get('name','').strip()
         if name:
+            #Only accept a well-formed YYYY-MM-DD date; anything else becomes
+            #None instead of crashing the request with a ValidationError from .save()
+            raw_expiry = request.POST.get('expiry_date') or ''
+            try:
+                expiry = parse_date(raw_expiry)
+            except ValueError:
+                expiry = None
             InventoryItem.objects.create(
                 user = request.user,
                 name = name,
                 quantity = request.POST.get('quantity', ''),
                 category = request.POST.get('category', 'Fridge'),
-                expiry_date = request.POST.get('expiry_date') or None
+                expiry_date = expiry
             )
         return redirect('inventory')
     items = InventoryItem.objects.filter(user = request.user).order_by('expiry_date')

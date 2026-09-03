@@ -132,12 +132,15 @@ def calendar(request):
 @login_required
 def shoppinglist(request):
     if request.method == 'POST' and 'add_item' in request.POST:
-        ShoppingListItem.objects.create(
-            user=request.user,
-            ingredient_name=request.POST.get('ingredient_name', '').strip(),
-            quantity=request.POST.get('quantity', ''),
-            source='manual'
-        )
+        name = request.POST.get('ingredient_name', '').strip()
+        #Skip blank / whitespace-only submissions instead of storing an empty row
+        if name:
+            ShoppingListItem.objects.create(
+                user=request.user,
+                ingredient_name=name,
+                quantity=request.POST.get('quantity', ''),
+                source='manual'
+            )
         return redirect('shoppinglist')
 
     items = ShoppingListItem.objects.filter(user=request.user)

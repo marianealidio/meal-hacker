@@ -37,7 +37,7 @@
                             <span class = "item-name"> {{ item.name }} </span>
                             <div class = "item-details">
                                 <span class = "item-quantity"> {{ item.quantity }} </span>
-                                <span class = "item-expiry"> {{ item.expiry_date }} </span>
+                                <span class = "item-expiry"> {{ item.expiry_date|default:"—" }} </span>
 
                                 <!-- Shows warning badge if item is expiring soon -->
                                 {% if item.expires_soon %}
@@ -65,7 +65,7 @@
                             <span class = "item-name"> {{ item.name }} </span>
                             <div class = "item-details">
                                 <span class = "item-quantity"> {{ item.quantity }} </span>
-                                <span class = "item-expiry"> {{ item.expiry_date }} </span>
+                                <span class = "item-expiry"> {{ item.expiry_date|default:"—" }} </span>
                                 {% if item.expires_soon %}
                                 <span class = "badge"> Expiring Soon ! </span>
                                 {% endif %}
@@ -91,7 +91,7 @@
                             <span class = "item-name"> {{ item.name }} </span>
                             <div class = "item-details">
                                 <span class = "item-quantity"> {{ item.quantity }} </span>
-                                <span class = "item-expiry"> {{ item.expiry_date }} </span>
+                                <span class = "item-expiry"> {{ item.expiry_date|default:"—" }} </span>
                                 {% if item.expires_soon %}
                                 <span class = "badge"> Expiring Soon ! </span>
                                 {% endif %}
@@ -114,14 +114,14 @@
                 <h2> Ingredients </h2>
                 <form method = "POST" action = "{% url 'inventory' %}">
                     {% csrf_token %}
-                    <input type = "text" name = "name" placeholder="ex. chicken" required>
-                    <input type = "text" name = "quantity" placeholder="ex. 2">
-                    <select name = "category">
+                    <input type = "text" name = "name" placeholder="ex. chicken" aria-label="Item name" required>
+                    <input type = "text" name = "quantity" placeholder="ex. 2" aria-label="Quantity">
+                    <select name = "category" aria-label="Category">
                         <option value = "Pantry"> Pantry </option>
                         <option value = "Fridge"> Fridge </option>
                         <option value = "Freezer"> Freezer </option>
                     </select>
-                    <input type = "date" name = "expiry_date">
+                    <input type = "date" name = "expiry_date" aria-label="Expiry date">
                     <button type = "submit"> Add </button>
                 </form>
             </div>   

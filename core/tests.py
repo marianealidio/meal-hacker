@@ -438,3 +438,87 @@ class XssTests(TestCase):
         r = self.c.get(reverse("inventory"))
         self.assertNotContains(r, "<script>alert(1)</script>", html=False)
         self.assertContains(r, "&lt;script&gt;")
+
+
+# ---------------------------------------------------------------------------
+# CHAT - kitchen-assistant chatbot (Groq mocked; no credits used)
+# ---------------------------------------------------------------------------
+def _fake_groq_reply(text):
+    m = mock.Mock()
+    m.status_code = 200
+    m.raise_for_status.return_value = None
+    m.json.return_value = {"choices": [{"message": {"content": text}}]}
+    return m
+
+
+class ChatbotTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user("chat", password="Str0ngPass!23")
+        self.c = Client()
+        self.c.login(username="chat", password="Str0ngPass!23")
+
+    def test_normal_question_stores_reply_and_redirects_home(self):  # CHAT-001 / CHAT-006
+        with mock.patch("core.views.requests.post", return_value=_fake_groq_reply("Boil for 8 minutes.")):
+            r = self.c.post(reverse("chatbot"), {"message": "How long to boil an egg?"})
+        # check the session before following the redirect (homepage pops these keys)
+        self.assertEqual(r.status_code, 302)
+        self.assertEqual(r["Location"], reverse("homepage"))
+        self.assertEqual(self.c.session["chat_reply"], "Boil for 8 minutes.")
+        self.assertEqual(self.c.session["chat_question"], "How long to boil an egg?")
+
+    def test_reply_is_shown_on_homepage_then_cleared(self):          # CHAT-001 (round trip)
+        with mock.patch("core.views.requests.post", return_value=_fake_groq_reply("Use butter.")):
+            self.c.post(reverse("chatbot"), {"message": "Grease the tin how?"})
+        first = self.c.get(reverse("homepage"))
+        self.assertContains(first, "Use butter.")
+        second = self.c.get(reverse("homepage"))          # session values are popped after one render
+        self.assertNotContains(second, "Use butter.")
+
+    def test_api_unavailable_falls_back_without_error(self):         # CHAT-007
+        with mock.patch("core.views.requests.post", side_effect=Exception("connection refused")):
+            r = self.c.post(reverse("chatbot"), {"message": "anything"})
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("could not answer", self.c.session["chat_reply"].lower())
+
+    def test_api_timeout_falls_back_without_error(self):             # CHAT-008
+        with mock.patch("core.views.requests.post", side_effect=Exception("timed out")):
+            r = self.c.post(reverse("chatbot"), {"message": "anything"})
+        self.assertRedirects(r, reverse("homepage"))
+
+    def test_malformed_api_response_falls_back(self):               # CHAT-009
+        bad = mock.Mock(); bad.raise_for_status.return_value = None; bad.json.return_value = {"unexpected": 1}
+        with mock.patch("core.views.requests.post", return_value=bad):
+            r = self.c.post(reverse("chatbot"), {"message": "anything"})
+        self.assertEqual(r.status_code, 302)
+        self.assertIn("could not answer", self.c.session["chat_reply"].lower())
+
+    def test_http_error_status_falls_back(self):                    # CHAT-011 (e.g. bad/missing key -> 401)
+        err = mock.Mock(); err.raise_for_status.side_effect = Exception("401 Unauthorized")
+        with mock.patch("core.views.requests.post", return_value=err):
+            r = self.c.post(reverse("chatbot"), {"message": "anything"})
+        self.assertRedirects(r, reverse("homepage"))
+
+    def test_get_request_just_redirects_home(self):                 # CHAT (method guard)
+        with mock.patch("core.views.requests.post") as p:
+            r = self.c.get(reverse("chatbot"))
+        self.assertRedirects(r, reverse("homepage"))
+        p.assert_not_called()
+
+    def test_chat_question_is_escaped_on_homepage(self):            # CHAT-013 / SEC-013
+        with mock.patch("core.views.requests.post", return_value=_fake_groq_reply("ok")):
+            self.c.post(reverse("chatbot"), {"message": "<script>alert(1)</script>"})
+        r = self.c.get(reverse("homepage"))
+        self.assertNotContains(r, "<script>alert(1)</script>", html=False)
+
+    def test_long_message_is_accepted(self):                        # CHAT-003 (boundary)
+        with mock.patch("core.views.requests.post", return_value=_fake_groq_reply("ok")):
+            r = self.c.post(reverse("chatbot"), {"message": "why " * 2000})
+        self.assertRedirects(r, reverse("homepage"))
+
+    @expectedFailure
+    def test_empty_message_should_not_call_the_api(self):           # CHAT-002 -> MH-B005 (OPEN)
+        """A blank / whitespace-only message is stripped to "" but the view still
+        POSTs it to Groq. Expected: an empty message is ignored (no API call)."""
+        with mock.patch("core.views.requests.post") as p:
+            self.c.post(reverse("chatbot"), {"message": "   "})
+        p.assert_not_called()

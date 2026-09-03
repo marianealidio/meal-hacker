@@ -6,13 +6,14 @@ from .models import InventoryItem, MealPlan, ShoppingListItem,Reminder
 import requests
 from django.utils.dateparse import parse_date
 from django.conf import settings
+from django.utils import timezone
 from datetime import date, timedelta
 
 
 #Homepage shows the best meal suggestion, expiring items, notes and chatbot response
 @login_required
 def homepage(request):
-    today = date.today()
+    today = timezone.localdate()
     warn = today + timedelta(days=3)
 
     #Gets all inventory items of the user
@@ -114,7 +115,7 @@ def inventory(request):
 #Displays the current week's planned meal 
 @login_required
 def calendar(request):
-    today = date.today()
+    today = timezone.localdate()
 
     #Find the monday of the current week
     start = today - timedelta(days=today.weekday())

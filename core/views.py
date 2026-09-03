@@ -60,6 +60,7 @@ def homepage(request):
 
     return render(request, 'pages/homepage.html', {
         'best_meal': best_meal,
+        'enough_ingredients': all_items.count() >= 3,
         'expiring_items': expiring_items,
         'reminder_note': reminder.note,
         'chat_reply': chat_reply,

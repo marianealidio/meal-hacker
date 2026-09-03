@@ -280,13 +280,20 @@ class DashboardTests(TestCase):
             r = self.c.get(reverse("homepage"))
         self.assertEqual(r.status_code, 200)
 
-    @expectedFailure
-    def test_dashboard_message_not_misleading_when_few_ingredients(self):  # MH-B001 (OPEN)
-        """With <3 ingredients Spoonacular is never called, yet the homepage still
-        prints 'It could also be because API limit is reached'. Expected: that
-        sentence is absent when the real reason is 'not enough items'."""
+    def test_dashboard_message_not_misleading_when_few_ingredients(self):  # MH-B001  (regression)
+        """With <3 ingredients Spoonacular is never called. The homepage now shows
+        only the 'add at least 3' guidance, not the recipe-service / limit text."""
         r = self.c.get(reverse("homepage"))
-        self.assertNotContains(r, "API limit")
+        self.assertContains(r, "at least 3")
+        self.assertNotContains(r, "limit has been reached")
+
+    def test_dashboard_message_mentions_service_when_enough_ingredients_but_no_meal(self):  # DASH-010
+        for n in ("egg", "flour", "milk"):
+            InventoryItem.objects.create(user=self.user, name=n)
+        with mock.patch("core.views.requests.get", return_value=_fake_response([])):
+            r = self.c.get(reverse("homepage"))
+        self.assertContains(r, "limit has been reached")
+        self.assertNotContains(r, "at least 3")
 
 
 class MealGenerationTests(TestCase):

@@ -295,11 +295,13 @@ def library(request):
         error = 'Could not load suggestions right now. The API may have reached its credit limit.'
 
 
-    #Compares each recipe's ingredients with the user's inventory
+    #Compares each recipe's ingredients with the user's inventory.
+    #Use i.get('name') so a partial API ingredient (no 'name' key) can't
+    #raise a KeyError and 500 the page.
     for recipe in recipes:
         ings = recipe.get('extendedIngredients', [])
-        recipe['have'] = [i for i in ings if i['name'].lower() in user_ingredients]
-        recipe['missing'] = [i for i in ings if i['name'].lower() not in user_ingredients]
+        recipe['have'] = [i for i in ings if (i.get('name') or '').lower() in user_ingredients]
+        recipe['missing'] = [i for i in ings if (i.get('name') or '').lower() not in user_ingredients]
     return render(request, 'pages/library.html', {'recipes': recipes, 'error':error })
 
 #Adds a selected recipe to the calendar and missing ingredients to the shopping list

@@ -1,6 +1,7 @@
 from django.db import models
-from django.contrib.auth.models import User 
-from datetime import date, timedelta 
+from django.contrib.auth.models import User
+from django.utils import timezone
+from datetime import timedelta
 
 
 #Stores the food items added by user 
@@ -28,7 +29,7 @@ class InventoryItem(models.Model):
     #Checks if the item expires within 3 days
     def expires_soon(self):
         if self.expiry_date:
-            return self.expiry_date <= date.today() + timedelta(days = 3)
+            return self.expiry_date <= timezone.localdate() + timedelta(days = 3)
         return False 
 
     #Shows the item name in the admin 

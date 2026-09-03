@@ -380,17 +380,16 @@ class CalendarTests(TestCase):
         self.assertContains(self.c.get(reverse("calendar")), "PlannedThing")
 
     @override_settings(TIME_ZONE="Pacific/Kiritimati", USE_TZ=True)  # UTC+14
-    @expectedFailure
-    def test_today_uses_local_timezone_not_utc(self):               # CAL-002 -> MH-B003 (OPEN)
+    def test_today_uses_local_timezone_not_utc(self):               # CAL-002  (regression: MH-B003)
         """At 23:30 UTC it is already the next calendar day in Kiritimati (UTC+14).
-        calendar() uses date.today() (process TZ forced to UTC by Django when
-        USE_TZ=True), so it reports the UTC day. Expected: 'today' follows the
-        configured local timezone."""
+        calendar() now uses timezone.localdate(), so 'today' follows the configured
+        local timezone instead of the process (UTC) date."""
         from datetime import datetime, timezone as dt_tz
         fixed_now = datetime(2026, 9, 3, 23, 30, tzinfo=dt_tz.utc)
         with mock.patch("django.utils.timezone.now", return_value=fixed_now):
             r = self.c.get(reverse("calendar"))
         self.assertEqual(r.context["today"], date(2026, 9, 4))
+        self.assertEqual(r.context["days"][0]["date"], date(2026, 8, 31))  # Monday of that week
 
 
 # ---------------------------------------------------------------------------

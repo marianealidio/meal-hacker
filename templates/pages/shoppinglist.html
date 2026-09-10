@@ -40,8 +40,8 @@
                     {% csrf_token %}
                     <!-- Hidden field used by the view to identify manually added and automatic -->
                     <input type = "hidden" name = "add_item" value="1">
-                    <input type = "text" name = "ingredient_name" placeholder = "ex. egg" required>
-                    <input type = "text" name = "quantity" placeholder = "ex. 2">
+                    <input type = "text" name = "ingredient_name" placeholder = "ex. egg" aria-label="Ingredient name" required>
+                    <input type = "text" name = "quantity" placeholder = "ex. 2" aria-label="Quantity">
                     <button type="submit"> Add </button>
                 </form>
             </div>

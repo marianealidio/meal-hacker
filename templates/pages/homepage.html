@@ -71,7 +71,7 @@
                 <!-- Saves the user's homepage -->
                 <form method="POST" action ="{% url 'save_reminders' %}">
                     {% csrf_token %}
-                    <textarea name="note" placeholder="Write down ideas, notes, or reminders :> ">{{ reminder_note }}</textarea>
+                    <textarea name="note" aria-label="Notes" placeholder="Write down ideas, notes, or reminders :> ">{{ reminder_note }}</textarea>
                     <button type ="submit"> Save </button>
                 </form>
             </div>
@@ -93,7 +93,7 @@
                 <!-- Sends a new question to the chatbot view -->
                 <form method = "POST" action = "{% url 'chatbot' %}">
                     {% csrf_token %}
-                    <input type = "text" name="message" placeholder="I'm your kitchen assistant.Ask me anything! " required>
+                    <input type = "text" name="message" aria-label="Ask the kitchen assistant" placeholder="I'm your kitchen assistant.Ask me anything! " required>
                     <button type = "submit"> Ask </button>
                 </form>
             </div>

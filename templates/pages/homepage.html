@@ -36,12 +36,17 @@
                         </div>
                     </div>
 
-                    <!-- Opens the full recipe detail page -->
+                    <!-- Opens the full recipe detail page (only when the API gave us an id) -->
+                    {% if best_meal.id %}
                     <a href = "{% url 'recipe_detail' best_meal.id %}" class="view-recipe-button"> View Full Recipe</a>
+                    {% endif %}
                     {% else %}
-                        <p> You don't have enough ingredients. Add atleast 3 in inventory </p>
-                        <p> It could also be because API limit is reached</p>
-                    {% endif %}    
+                        {% if not enough_ingredients %}
+                        <p> You don't have enough ingredients yet. Add at least 3 items to your inventory. </p>
+                        {% else %}
+                        <p> No meal suggestion right now. This can happen if the recipe service is unavailable or its daily limit has been reached. </p>
+                        {% endif %}
+                    {% endif %}
 
                 </div>
             </div>

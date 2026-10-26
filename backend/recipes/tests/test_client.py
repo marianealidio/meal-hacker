@@ -1,0 +1,99 @@
+from datetime import timedelta
+from unittest import mock
+
+from django.test import TestCase, override_settings
+from django.utils import timezone
+
+from recipes import spoonacular
+from recipes.models import RecipeCache
+
+
+def fake_response(payload, status=200):
+    m = mock.Mock()
+    m.status_code = status
+    m.json.return_value = payload
+    if status >= 400:
+        import requests
+        m.raise_for_status.side_effect = requests.HTTPError(f"{status}")
+    else:
+        m.raise_for_status.return_value = None
+    return m
+
+
+@override_settings(SPOONACULAR_API_KEY="test-key")
+class LiveClientTests(TestCase):
+    def test_search_calls_api_once_then_uses_cache(self):
+        with mock.patch("recipes.spoonacular.requests.get",
+                        return_value=fake_response({"results": [{"id": 1}]})) as g:
+            r1 = spoonacular.search({"query": "pasta"})
+            r2 = spoonacular.search({"query": "pasta"})
+        self.assertEqual(g.call_count, 1)
+        self.assertEqual(r1.data, [{"id": 1}])
+        self.assertEqual(r2.data, [{"id": 1}])
+        self.assertFalse(r2.stale)
+        params = g.call_args.kwargs["params"]
+        self.assertEqual(params["apiKey"], "test-key")
+        self.assertTrue(params["addRecipeInformation"])
+
+    def test_cache_key_ignores_param_order_and_api_key(self):
+        with mock.patch("recipes.spoonacular.requests.get",
+                        return_value=fake_response({"results": []})) as g:
+            spoonacular.search({"query": "a", "diet": "vegan"})
+            spoonacular.search({"diet": "vegan", "query": "a"})
+        self.assertEqual(g.call_count, 1)
+        self.assertNotIn("test-key", RecipeCache.objects.get().key)
+
+    def test_expired_cache_refetches(self):
+        with mock.patch("recipes.spoonacular.requests.get",
+                        return_value=fake_response({"results": [{"id": 1}]})) as g:
+            spoonacular.search({"query": "x"})
+            RecipeCache.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
+            spoonacular.search({"query": "x"})
+        self.assertEqual(g.call_count, 2)
+
+    def test_quota_error_serves_stale_cache(self):
+        with mock.patch("recipes.spoonacular.requests.get",
+                        return_value=fake_response({"results": [{"id": 7}]})):
+            spoonacular.search({"query": "y"})
+        RecipeCache.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
+        with mock.patch("recipes.spoonacular.requests.get", return_value=fake_response({}, status=402)):
+            r = spoonacular.search({"query": "y"})
+        self.assertTrue(r.stale)
+        self.assertEqual(r.data, [{"id": 7}])
+
+    def test_failure_without_cache_raises_unavailable(self):
+        import requests
+        with mock.patch("recipes.spoonacular.requests.get", side_effect=requests.ConnectionError()):
+            with self.assertRaises(spoonacular.SpoonacularUnavailable):
+                spoonacular.information(42)
+
+    def test_information_uses_detail_ttl(self):
+        with mock.patch("recipes.spoonacular.requests.get",
+                        return_value=fake_response({"id": 42, "title": "T"})):
+            r = spoonacular.information(42)
+        self.assertEqual(r.data["id"], 42)
+        entry = RecipeCache.objects.get()
+        self.assertGreater(entry.expires_at - entry.fetched_at, timedelta(days=6))
+
+
+@override_settings(SPOONACULAR_API_KEY="")
+class OfflineClientTests(TestCase):
+    def test_offline_never_calls_network(self):
+        with mock.patch("recipes.spoonacular.requests.get") as g:
+            r = spoonacular.search({"query": ""})
+            self.assertTrue(spoonacular.is_offline())
+        g.assert_not_called()
+        self.assertGreaterEqual(len(r.data), 8)
+        self.assertTrue(all(x.get("summary") for x in r.data))
+
+    def test_offline_search_filters_by_query_and_ingredients(self):
+        r = spoonacular.search({"query": "soup"})
+        self.assertTrue(all("soup" in x["title"].lower() for x in r.data))
+        r2 = spoonacular.search({"includeIngredients": "garlic", "sort": "max-used-ingredients"})
+        self.assertTrue(all(any(i["name"] == "garlic" for i in x["usedIngredients"]) for x in r2.data))
+
+    def test_offline_information_by_id_and_unknown(self):
+        first = spoonacular.search({}).data[0]
+        self.assertEqual(spoonacular.information(first["id"]).data["id"], first["id"])
+        with self.assertRaises(spoonacular.SpoonacularUnavailable):
+            spoonacular.information(999999999)

@@ -79,3 +79,11 @@ class TestKeysTests(TestCase):
         from django.conf import settings
         self.assertEqual(settings.SPOONACULAR_API_KEY, "")
         self.assertEqual(settings.GROQ_API_KEY, "")
+
+
+class DevCsrfOriginsTests(TestCase):
+    def test_dev_trusts_local_frontend_ports(self):
+        from django.conf import settings
+        for origin in ("http://localhost:3000", "http://localhost:3002", "http://127.0.0.1:3005"):
+            self.assertIn(origin, settings.CSRF_TRUSTED_ORIGINS)
+        self.assertNotIn("http://localhost:3006", settings.CSRF_TRUSTED_ORIGINS)

@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import { useFormErrors } from "./useFormErrors";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/Button";
 import { TextField } from "@/components/ui/Field";
-import { ApiError } from "@/lib/api";
 import { useSignup } from "@/lib/queries";
 
 export function SignupForm() {
@@ -14,9 +14,7 @@ export function SignupForm() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
-  const error = signup.error instanceof ApiError ? signup.error : signup.error ? new ApiError(0, "unknown", signup.error.message) : null;
-  const fields = error?.fields ?? {};
-  const hasFieldErrors = Object.keys(fields).length > 0;
+  const errs = useFormErrors(signup.error);
 
   function submit(e: FormEvent) {
     e.preventDefault();
@@ -25,10 +23,10 @@ export function SignupForm() {
 
   return (
     <div>
-      <form onSubmit={submit} noValidate className="flex flex-col gap-5">
-        {error && !hasFieldErrors && (
-          <p role="alert" className="rounded-xl bg-coral-tint px-4 py-3 text-sm font-medium leading-snug text-coral-tint-ink">
-            {error.message}
+      <form ref={errs.formRef} onSubmit={submit} noValidate className="flex flex-col gap-5">
+        {errs.banner && (
+          <p ref={errs.bannerRef} tabIndex={-1} role="alert" className="rounded-xl bg-coral-tint px-4 py-3 text-sm font-medium leading-snug text-coral-tint-ink focus:outline-none">
+            {errs.banner}
           </p>
         )}
         <TextField
@@ -39,7 +37,7 @@ export function SignupForm() {
           hint="3–150 letters, numbers or . @ + - _"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          error={fields.username?.[0]}
+          error={errs.username}
         />
         <TextField
           label="Password"
@@ -50,7 +48,7 @@ export function SignupForm() {
           hint="At least 8 characters, not too common"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          error={fields.password?.[0]}
+          error={errs.password}
         />
         <Button type="submit" size="lg" pending={signup.isPending} className="mt-1 w-full">
           Create account

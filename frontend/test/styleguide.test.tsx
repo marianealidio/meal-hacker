@@ -17,6 +17,13 @@ describe("styleguide", () => {
       expect(screen.getAllByText(hex, { exact: false }).length).toBeGreaterThan(0);
     }
   });
+
+  it("pairs the butter swatch with ink text, not butter-ink (4.3:1 fails AA)", () => {
+    wrap(<Styleguide />);
+    const label = screen.getByTestId("swatch-label-butter");
+    expect(label.parentElement).toHaveClass("text-ink");
+    expect(label).toHaveTextContent("on ink");
+  });
 });
 
 describe("not found", () => {

@@ -3,7 +3,7 @@
     "id": 716429,
     "title": "Pasta with Garlic, Scallions, Cauliflower and Breadcrumbs",
     "image": "https://img.spoonacular.com/recipes/716429-556x370.jpg",
-    "summary": "A <b>cosy bowl of pasta</b> tossed with sweet roasted cauliflower and a hit of golden garlic. The toasted breadcrumbs on top add a crunch that makes every forkful interesting. It is a budget-friendly supper that comes together in about half an hour.",
+    "summary": "A <b>cosy bowl of pasta</b> tossed with sweet roasted cauliflower, wilted spinach and a hit of golden garlic. The toasted breadcrumbs on top add a crunch that makes every forkful interesting. It is a budget-friendly supper that comes together in about half an hour.",
     "readyInMinutes": 35,
     "servings": 2,
     "diets": [
@@ -65,6 +65,13 @@
         "unit": "",
         "original": "1 lemon, zested",
         "aisle": "Produce"
+      },
+      {
+        "name": "spinach",
+        "amount": 2,
+        "unit": "handfuls",
+        "original": "2 big handfuls of spinach",
+        "aisle": "Produce"
       }
     ],
     "analyzedInstructions": [
@@ -88,7 +95,7 @@
           },
           {
             "number": 5,
-            "step": "Add the pasta with a splash of the cooking water and toss until glossy."
+            "step": "Add the pasta and spinach with a splash of the cooking water and toss until the spinach wilts and the sauce turns glossy."
           },
           {
             "number": 6,
@@ -291,7 +298,7 @@
     "id": 716426,
     "title": "Cauliflower, Brown Rice and Vegetable Fried Rice",
     "image": "https://img.spoonacular.com/recipes/716426-556x370.jpg",
-    "summary": "A <b>colourful fried rice</b> that sneaks in grated cauliflower alongside the usual rice, peas and carrots. It is quick, light and a brilliant way to use up leftover rice. A splash of soy gives it that takeaway flavour.",
+    "summary": "A <b>colourful fried rice</b> that sneaks in grated cauliflower alongside the usual rice, peas, carrots and a few handfuls of spinach. It is quick, light and a brilliant way to use up leftover rice. A splash of soy gives it that takeaway flavour.",
     "readyInMinutes": 30,
     "servings": 4,
     "diets": [
@@ -361,6 +368,13 @@
         "unit": "tbsp",
         "original": "2 tbsp vegetable oil",
         "aisle": "Oil, Vinegar, Salad Dressing"
+      },
+      {
+        "name": "spinach",
+        "amount": 2,
+        "unit": "handfuls",
+        "original": "2 handfuls of spinach",
+        "aisle": "Produce"
       }
     ],
     "analyzedInstructions": [
@@ -384,7 +398,7 @@
           },
           {
             "number": 5,
-            "step": "Tip in the peas and soy sauce and cook until everything is piping hot."
+            "step": "Tip in the peas, spinach and soy sauce and cook until the spinach wilts and everything is piping hot."
           }
         ]
       }
@@ -479,7 +493,7 @@
     "id": 715415,
     "title": "Red Lentil Soup with Chicken and Turnips",
     "image": "https://img.spoonacular.com/recipes/715415-556x370.jpg",
-    "summary": "A <b>warming, golden soup</b> where red lentils melt into a velvety base around tender chicken and sweet turnip. Cumin and garlic give it depth without any fuss. It is exactly what you want on a chilly evening.",
+    "summary": "A <b>warming, golden soup</b> where red lentils melt into a velvety base around tender chicken, sweet turnip and a handful of spinach stirred in at the end. Cumin and garlic give it depth without any fuss. It is exactly what you want on a chilly evening.",
     "readyInMinutes": 45,
     "servings": 4,
     "diets": [
@@ -549,6 +563,13 @@
         "unit": "tbsp",
         "original": "2 tbsp olive oil",
         "aisle": "Oil, Vinegar, Salad Dressing"
+      },
+      {
+        "name": "spinach",
+        "amount": 100,
+        "unit": "g",
+        "original": "100g spinach",
+        "aisle": "Produce"
       }
     ],
     "analyzedInstructions": [
@@ -572,7 +593,7 @@
           },
           {
             "number": 5,
-            "step": "Season to taste and serve hot, with extra cumin if you like."
+            "step": "Stir in the spinach and let it wilt for a minute, then season to taste and serve hot."
           }
         ]
       }
@@ -760,7 +781,7 @@
     "id": 715594,
     "title": "Homemade Garlic and Basil French Fries",
     "image": "https://img.spoonacular.com/recipes/715594-556x370.jpg",
-    "summary": "Oven-baked fries with <b>crisp edges and a fluffy middle</b>, tossed in garlic and fresh basil the moment they come out. Far less greasy than the fried kind, and you can make them with whatever potatoes are in the cupboard.",
+    "summary": "Oven-baked fries with <b>crisp edges and a fluffy middle</b>, tossed in garlic and fresh basil, then showered with grated cheddar, the moment they come out. Far less greasy than the fried kind, and you can make them with whatever potatoes are in the cupboard.",
     "readyInMinutes": 50,
     "servings": 4,
     "diets": [
@@ -808,6 +829,13 @@
         "unit": "tsp",
         "original": "1 tsp sea salt",
         "aisle": "Spices and Seasonings"
+      },
+      {
+        "name": "cheddar",
+        "amount": 50,
+        "unit": "g",
+        "original": "50g cheddar, finely grated",
+        "aisle": "Dairy"
       }
     ],
     "analyzedInstructions": [
@@ -831,7 +859,7 @@
           },
           {
             "number": 5,
-            "step": "Mix the garlic with the last of the oil and toss it through the fries with the basil."
+            "step": "Mix the garlic with the last of the oil and toss it through the fries with the basil and cheddar, which will melt into the heat."
           }
         ]
       }

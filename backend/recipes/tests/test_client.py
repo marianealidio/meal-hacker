@@ -61,6 +61,15 @@ class LiveClientTests(TestCase):
         self.assertTrue(r.stale)
         self.assertEqual(r.data, [{"id": 7}])
 
+    def test_stale_serve_logs_warning(self):
+        with mock.patch("recipes.spoonacular.requests.get",
+                        return_value=fake_response({"results": []})):
+            spoonacular.search({"query": "z"})
+        RecipeCache.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
+        with mock.patch("recipes.spoonacular.requests.get", return_value=fake_response({}, status=402)):
+            with self.assertLogs("recipes.spoonacular", level="WARNING"):
+                spoonacular.search({"query": "z"})
+
     def test_failure_without_cache_raises_unavailable(self):
         import requests
         with mock.patch("recipes.spoonacular.requests.get", side_effect=requests.ConnectionError()):
@@ -88,9 +97,28 @@ class OfflineClientTests(TestCase):
 
     def test_offline_search_filters_by_query_and_ingredients(self):
         r = spoonacular.search({"query": "soup"})
+        self.assertTrue(r.data)
         self.assertTrue(all("soup" in x["title"].lower() for x in r.data))
         r2 = spoonacular.search({"includeIngredients": "garlic", "sort": "max-used-ingredients"})
+        self.assertTrue(r2.data)
         self.assertTrue(all(any(i["name"] == "garlic" for i in x["usedIngredients"]) for x in r2.data))
+
+    def test_offline_demo_inventory_finds_spinach_recipes(self):
+        r = spoonacular.search({"includeIngredients": "spinach,garlic,onion", "sort": "max-used-ingredients"})
+        self.assertGreaterEqual(len(r.data), 3)
+        self.assertTrue(any(i["name"] == "spinach" for x in r.data for i in x["usedIngredients"]))
+
+    def test_offline_results_are_copies(self):
+        spoonacular.search({}).data[0]["title"] = "mutated"
+        spoonacular.search({"includeIngredients": "garlic"}).data[0]["extendedIngredients"].clear()
+        first_id = spoonacular.search({}).data[0]["id"]
+        info = spoonacular.information(first_id).data
+        info["title"] = "mutated"
+        info["extendedIngredients"].clear()
+        again = spoonacular.information(first_id).data
+        self.assertNotEqual(again["title"], "mutated")
+        self.assertTrue(again["extendedIngredients"])
+        self.assertNotEqual(spoonacular.search({}).data[0]["title"], "mutated")
 
     def test_offline_information_by_id_and_unknown(self):
         first = spoonacular.search({}).data[0]

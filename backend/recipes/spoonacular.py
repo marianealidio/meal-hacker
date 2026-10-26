@@ -4,8 +4,10 @@ Every response is cached in RecipeCache. When the API fails, a stale cache
 entry is served instead. When no API key is configured, hand-written sample
 recipes are served so the demo works without credits.
 """
+import copy
 import hashlib
 import json
+import logging
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import lru_cache
@@ -24,6 +26,8 @@ BASE_URL = "https://api.spoonacular.com"
 SEARCH_TTL = timedelta(hours=24)
 DETAIL_TTL = timedelta(days=7)
 TIMEOUT = 10
+
+logger = logging.getLogger(__name__)
 
 
 class SpoonacularUnavailable(Exception):
@@ -58,6 +62,7 @@ def _fetch(endpoint: str, params: Dict[str, Any], ttl: timedelta) -> Result:
         payload = resp.json()
     except (requests.RequestException, ValueError) as exc:
         if entry:
+            logger.warning("Spoonacular request to %s failed (%s); serving stale cache", endpoint, exc)
             return Result(entry.payload, stale=True)
         raise SpoonacularUnavailable(str(exc)) from exc
     RecipeCache.objects.update_or_create(
@@ -78,7 +83,7 @@ def _offline_search(params: Dict[str, Any]) -> List[Dict[str, Any]]:
     cuisine = (params.get("cuisine") or "").lower()
     wanted = {normalise(n) for n in (params.get("includeIngredients") or "").split(",") if n.strip()}
     results = []
-    for raw in _samples():
+    for raw in copy.deepcopy(_samples()):
         if query and query not in raw["title"].lower():
             continue
         if diet and diet not in [d.lower() for d in raw.get("diets", [])]:
@@ -87,7 +92,7 @@ def _offline_search(params: Dict[str, Any]) -> List[Dict[str, Any]]:
             continue
         if cuisine and cuisine not in [c.lower() for c in raw.get("cuisines", [])]:
             continue
-        item = dict(raw)
+        item = raw
         if wanted:
             used, missed = [], []
             for ing in raw.get("extendedIngredients", []):
@@ -117,6 +122,6 @@ def information(recipe_id: int) -> Result:
     if is_offline():
         for raw in _samples():
             if raw["id"] == recipe_id:
-                return Result(raw)
+                return Result(copy.deepcopy(raw))
         raise SpoonacularUnavailable(f"No sample recipe {recipe_id}")
     return _fetch(f"/recipes/{recipe_id}/information", {"includeNutrition": False}, DETAIL_TTL)

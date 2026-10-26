@@ -3,6 +3,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import RecipeDetailPage from "@/app/(app)/recipes/[id]/page";
+import { Providers } from "@/app/providers";
 import { Toaster } from "@/components/ui/Toaster";
 import type { RecipeDetail } from "@/lib/types";
 
@@ -35,7 +36,10 @@ function mockFetch(detail: () => Response = () => json(recipe)) {
     const method = init?.method ?? "GET";
     calls.push({ url, method, body: init?.body as string | undefined });
     if (method === "GET" && url.includes("/api/recipes/")) return detail();
-    if (method === "POST" && url.includes("/api/shopping/")) return json({ id: 1 }, 201);
+    if (method === "POST" && url.includes("/api/shopping/")) {
+      await new Promise((r) => setTimeout(r, 50));
+      return json({ id: 1 }, 201);
+    }
     return json({ error: { code: "x", message: "no route", fields: {} } }, 404);
   });
   return calls;
@@ -78,14 +82,20 @@ describe("recipe detail", () => {
     expect(screen.getByTestId("amount-spaghetti")).toHaveTextContent("2 cup");
   });
 
-  it("adds each missing ingredient to the shopping list", async () => {
+  it("adds each missing ingredient once, with scaled quantity and aisle", async () => {
     const calls = mockFetch();
     wrap();
     const user = userEvent.setup();
-    await user.click(await screen.findByRole("button", { name: "Add 2 missing to shopping list" }));
-    await waitFor(() => expect(calls.filter((c) => c.method === "POST")).toHaveLength(2));
-    expect(calls.find((c) => c.method === "POST")?.body).toContain("Produce");
-    expect(await screen.findByText("Added 2 items to your list")).toBeInTheDocument();
+    await user.click(await screen.findByRole("button", { name: "More servings" }));
+    await user.click(await screen.findByRole("button", { name: "More servings" }));
+    const btn = screen.getByRole("button", { name: "Add 2 missing to shopping list" });
+    await user.dblClick(btn);
+    expect((await screen.findAllByText("Added 2 items to your list")).length).toBeGreaterThan(0);
+    const bodies = calls.filter((c) => c.method === "POST").map((c) => JSON.parse(c.body ?? "{}"));
+    expect(bodies).toEqual([
+      { ingredient_name: "lemon", quantity: "4", aisle: "Produce" },
+      { ingredient_name: "a handful of parsley", quantity: "", aisle: "Produce" },
+    ]);
   });
 
   it("steps through cook mode with buttons and keys, holding a wake lock", async () => {
@@ -107,9 +117,50 @@ describe("recipe detail", () => {
     await user.keyboard("{ArrowLeft}");
     expect(screen.getByText("Step 2 of 3")).toBeInTheDocument();
     await user.keyboard("{ArrowRight}");
-    const closers = screen.getAllByRole("button", { name: "Close" });
-    await user.click(closers[closers.length - 1]);
+    const finish = screen.getByRole("button", { name: "Finish cooking" });
+    await user.click(finish);
     await waitFor(() => expect(release).toHaveBeenCalled());
+  });
+
+  it("re-acquires the wake lock when the page becomes visible again", async () => {
+    mockFetch();
+    const request = vi.fn().mockResolvedValue({ release: vi.fn().mockResolvedValue(undefined) });
+    vi.stubGlobal("navigator", Object.assign(Object.create(navigator), { wakeLock: { request } }));
+    wrap();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Cook mode" }));
+    await waitFor(() => expect(request).toHaveBeenCalledTimes(1));
+    const vis = vi.spyOn(document, "visibilityState", "get");
+    vis.mockReturnValue("hidden");
+    document.dispatchEvent(new Event("visibilitychange"));
+    expect(request).toHaveBeenCalledTimes(1);
+    vis.mockReturnValue("visible");
+    document.dispatchEvent(new Event("visibilitychange"));
+    await waitFor(() => expect(request).toHaveBeenCalledTimes(2));
+  });
+
+  it("moves focus to the primary button when Next becomes Finish", async () => {
+    mockFetch();
+    wrap();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Cook mode" }));
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByRole("button", { name: "Finish cooking" })).toHaveFocus();
+  });
+
+  it("hides cook mode when there are no steps", async () => {
+    mockFetch(() => json({ ...recipe, steps: [] }));
+    wrap();
+    await screen.findByRole("heading", { level: 1 });
+    expect(screen.queryByRole("button", { name: "Cook mode" })).not.toBeInTheDocument();
+  });
+
+  it("fetches a 404 recipe only once (no retries)", async () => {
+    const calls = mockFetch(() => json({ error: { code: "not_found", message: "Not found.", fields: {} } }, 404));
+    render(<Providers><RecipeDetailPage /></Providers>);
+    expect(await screen.findByText("This recipe has gone off")).toBeInTheDocument();
+    expect(calls.filter((c) => c.url.includes("/api/recipes/"))).toHaveLength(1);
   });
 
   it("shows the not-found state for a 404", async () => {

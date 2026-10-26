@@ -1,26 +1,34 @@
 "use client";
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Dialog, DialogContent } from "@/components/ui/Dialog";
 
 type WakeLock = { release: () => Promise<void> };
 
-/** Holds a screen wake lock while `active`; silently does nothing where unsupported. */
+/** Holds a screen wake lock while `active`, re-acquiring it when the page returns to view. Silent where unsupported. */
 function useWakeLock(active: boolean) {
   useEffect(() => {
-    if (!active || typeof navigator === "undefined" || !("wakeLock" in navigator) || !navigator.wakeLock) return;
+    if (!active || typeof navigator === "undefined" || !navigator.wakeLock) return;
     let lock: WakeLock | null = null;
     let cancelled = false;
-    Promise.resolve(navigator.wakeLock.request("screen"))
-      .then((l) => {
-        if (cancelled) void l.release().catch(() => {});
-        else lock = l;
-      })
-      .catch(() => {});
+    function acquire() {
+      Promise.resolve(navigator.wakeLock.request("screen"))
+        .then((l) => {
+          if (cancelled) void l.release().catch(() => {});
+          else lock = l;
+        })
+        .catch(() => {});
+    }
+    function onVisible() {
+      if (document.visibilityState === "visible" && !cancelled) acquire();
+    }
+    acquire();
+    document.addEventListener("visibilitychange", onVisible);
     return () => {
       cancelled = true;
+      document.removeEventListener("visibilitychange", onVisible);
       void lock?.release().catch(() => {});
     };
   }, [active]);
@@ -43,10 +51,16 @@ export function CookMode({ title, steps, open, onOpenChange }: CookModeProps) {
 }
 
 function CookSteps({ steps, onClose }: { steps: string[]; onClose: () => void }) {
-  const [index, setIndex] = useState(0);
+  const [rawIndex, setIndex] = useState(0);
+  const primary = useRef<HTMLButtonElement>(null);
   useWakeLock(true);
   const last = steps.length - 1;
-  const go = (n: number) => setIndex(Math.min(last, Math.max(0, n)));
+  const index = Math.min(rawIndex, Math.max(0, last));
+  const go = (n: number) => {
+    setIndex(Math.min(last, Math.max(0, n)));
+    // The clicked button may unmount or become disabled; keep focus on the primary action.
+    requestAnimationFrame(() => primary.current?.focus());
+  };
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -74,11 +88,11 @@ function CookSteps({ steps, onClose }: { steps: string[]; onClose: () => void })
           <ChevronLeft className="size-5" aria-hidden="true" /> Previous
         </Button>
         {index === last ? (
-          <Button variant="primary" size="lg" onClick={onClose}>
-            Close
+          <Button ref={primary} variant="primary" size="lg" onClick={onClose}>
+            Finish cooking
           </Button>
         ) : (
-          <Button variant="primary" size="lg" onClick={() => go(index + 1)}>
+          <Button ref={primary} variant="primary" size="lg" onClick={() => go(index + 1)}>
             Next <ChevronRight className="size-5" aria-hidden="true" />
           </Button>
         )}

@@ -1,7 +1,7 @@
 "use client";
 
 import { Check } from "lucide-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toaster";
@@ -11,12 +11,18 @@ import type { RecipeIngredient } from "@/lib/types";
 import { ServingsScaler } from "./ServingsScaler";
 
 function quantity(i: RecipeIngredient, base: number, servings: number): string {
+  if (i.amount === null) return "";
   return [scaleAmount(i.amount, base, servings), i.unit].filter(Boolean).join(" ");
+}
+
+function shoppingName(i: RecipeIngredient): string {
+  return i.amount === null && i.original.length > i.name.length ? i.original : i.name;
 }
 
 export function IngredientList({ ingredients, baseServings }: { ingredients: RecipeIngredient[]; baseServings: number }) {
   const [servings, setServings] = useState(baseServings);
   const [busy, setBusy] = useState(false);
+  const inFlight = useRef(false);
   const add = useAddShopping();
   const { toast } = useToast();
 
@@ -24,12 +30,15 @@ export function IngredientList({ ingredients, baseServings }: { ingredients: Rec
   const have = ingredients.length - missing.length;
 
   async function addMissing() {
+    if (inFlight.current) return;
+    inFlight.current = true;
     setBusy(true);
     const results = await Promise.allSettled(
       missing.map((i) =>
-        add.mutateAsync({ ingredient_name: i.name, quantity: quantity(i, baseServings, servings), aisle: i.aisle }),
+        add.mutateAsync({ ingredient_name: shoppingName(i), quantity: quantity(i, baseServings, servings), aisle: i.aisle }),
       ),
     );
+    inFlight.current = false;
     setBusy(false);
     const ok = results.filter((r) => r.status === "fulfilled").length;
     // Failures already raised an error toast from useAddShopping.

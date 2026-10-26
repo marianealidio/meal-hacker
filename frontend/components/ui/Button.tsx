@@ -1,5 +1,5 @@
 import Link from "next/link";
-import type { ButtonHTMLAttributes, ComponentProps } from "react";
+import type { ButtonHTMLAttributes, ComponentProps, Ref } from "react";
 import { cn } from "@/lib/cn";
 
 export type ButtonVariant = "primary" | "secondary" | "ghost" | "dark";
@@ -46,6 +46,7 @@ export type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   size?: ButtonSize;
   pending?: boolean;
   asChild?: false;
+  ref?: Ref<HTMLButtonElement>;
 };
 
 export function Button({

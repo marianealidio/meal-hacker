@@ -25,7 +25,7 @@ function parseId(raw: string | string[] | undefined): number | null {
   const s = Array.isArray(raw) ? raw[0] : raw;
   if (!s || !/^\d+$/.test(s)) return null;
   const n = Number(s);
-  return n >= 1 ? n : null;
+  return Number.isSafeInteger(n) && n >= 1 ? n : null;
 }
 
 export default function RecipeDetailPage() {
@@ -79,7 +79,7 @@ function RecipeView({ recipe, stale }: { recipe: RecipeDetail; stale: boolean })
       <div className="flex flex-col gap-5">
         <div className="relative aspect-video w-full overflow-hidden rounded-card bg-paper lg:aspect-[21/9]">
           {recipe.image && (
-            <Image src={recipe.image} alt={recipe.title} fill priority sizes="(min-width: 1024px) 1100px, 100vw" className="object-cover" />
+            <Image src={recipe.image} alt="" fill priority sizes="(min-width: 1024px) 1100px, 100vw" className="object-cover" />
           )}
         </div>
         {stale && <StaleNotice />}
@@ -96,7 +96,7 @@ function RecipeView({ recipe, stale }: { recipe: RecipeDetail; stale: boolean })
         <div className="flex flex-wrap items-center gap-3">
           <FavouriteButton recipeId={recipe.id} isFavourite={recipe.is_favourite} className="border border-line" />
           <Button onClick={() => setPlanning(true)}>Add to plan</Button>
-          <Button variant="dark" onClick={() => setCooking(true)}>Cook mode</Button>
+          {recipe.steps.length > 0 && <Button variant="dark" onClick={() => setCooking(true)}>Cook mode</Button>}
           {recipe.source_url && (
             <a
               href={recipe.source_url}

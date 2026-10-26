@@ -49,7 +49,6 @@ def ensure_demo_user() -> User:
     return user
 
 
-@transaction.atomic
 def seed_demo_data(user: User, reset: bool = False) -> None:
     from kitchen.models import InventoryItem, Note
     from planner.models import MealPlan, ShoppingListItem
@@ -57,45 +56,52 @@ def seed_demo_data(user: User, reset: bool = False) -> None:
     from recipes.models import FavouriteRecipe
     from recipes.normalise import summary_from_api
 
-    if reset:
-        InventoryItem.objects.filter(user=user).delete()
-        MealPlan.objects.filter(user=user).delete()
-        ShoppingListItem.objects.filter(user=user).delete()
-        FavouriteRecipe.objects.filter(user=user).delete()
-        Note.objects.filter(user=user).delete()
-        p = get_profile(user)
-        p.display_name, p.diet, p.intolerances, p.onboarded, p.is_demo = "Guest chef", "", [], True, True
-        p.save()
-    elif user.inventory.exists():
-        return
-
-    today = timezone.localdate()
-    now = timezone.now()
-    for name, qty, cat, days in INVENTORY:
-        InventoryItem.objects.create(user=user, name=name, quantity=qty, category=cat,
-                                     expiry_date=today + timedelta(days=days) if days is not None else None)
-    for i, (name, cat) in enumerate(USED):
-        InventoryItem.objects.create(user=user, name=name, category=cat, used_at=now - timedelta(days=i))
-
-    monday = today - timedelta(days=today.weekday())
-
+    # Network lookups happen before the transaction so no DB lock is held during I/O.
     def info(recipe_id):
         try:
             return summary_from_api(spoonacular.information(recipe_id).data, set())
         except spoonacular.SpoonacularUnavailable:
             return {"title": "Planned meal", "image": "", "description": ""}
 
-    for recipe_id, offset, slot in [] if MealPlan.objects.filter(user=user).exists() else PLANS:
-        s = info(recipe_id)
-        MealPlan.objects.create(user=user, recipe_id=recipe_id, recipe_title=s["title"][:200],
-                                recipe_image=s["image"][:200], description=s["description"][:300],
-                                planned_date=monday + timedelta(days=offset), slot=slot)
-    for name, qty, aisle in [] if ShoppingListItem.objects.filter(user=user).exists() else SHOPPING:
-        ShoppingListItem.objects.create(user=user, ingredient_name=name, quantity=qty, aisle=aisle, source="auto")
-    for recipe_id in FAVOURITES:
-        if FavouriteRecipe.objects.filter(user=user, recipe_id=recipe_id).exists():
-            continue
-        s = info(recipe_id)
-        FavouriteRecipe.objects.create(user=user, recipe_id=recipe_id, title=s["title"][:200],
-                                       image=s["image"][:200], description=s["description"][:300])
-    Note.objects.update_or_create(user=user, defaults={"note": "Use the spinach tonight.\nBatch-cook rice on Sunday."})
+    infos = {rid: info(rid) for rid in {r for r, _, _ in PLANS} | set(FAVOURITES)}
+
+    with transaction.atomic():
+        # Row lock serialises concurrent seeds; conditions are re-checked after it is taken.
+        User.objects.select_for_update().get(pk=user.pk)
+        if reset:
+            InventoryItem.objects.filter(user=user).delete()
+            MealPlan.objects.filter(user=user).delete()
+            ShoppingListItem.objects.filter(user=user).delete()
+            FavouriteRecipe.objects.filter(user=user).delete()
+            Note.objects.filter(user=user).delete()
+            p = get_profile(user)
+            p.display_name, p.diet, p.intolerances, p.onboarded, p.is_demo = "Guest chef", "", [], True, True
+            p.save()
+        elif user.inventory.exists():
+            return
+
+        today = timezone.localdate()
+        now = timezone.now()
+        for name, qty, cat, days in INVENTORY:
+            InventoryItem.objects.create(user=user, name=name, quantity=qty, category=cat,
+                                         expiry_date=today + timedelta(days=days) if days is not None else None)
+        for i, (name, cat) in enumerate(USED):
+            InventoryItem.objects.create(user=user, name=name, category=cat, used_at=now - timedelta(days=i))
+
+        monday = today - timedelta(days=today.weekday())
+        if not MealPlan.objects.filter(user=user).exists():
+            for recipe_id, offset, slot in PLANS:
+                s = infos[recipe_id]
+                MealPlan.objects.create(user=user, recipe_id=recipe_id, recipe_title=s["title"][:200],
+                                        recipe_image=s["image"][:200], description=s["description"][:300],
+                                        planned_date=monday + timedelta(days=offset), slot=slot)
+        if not ShoppingListItem.objects.filter(user=user).exists():
+            for name, qty, aisle in SHOPPING:
+                ShoppingListItem.objects.create(user=user, ingredient_name=name, quantity=qty,
+                                                aisle=aisle, source="auto")
+        for recipe_id in FAVOURITES:
+            if not FavouriteRecipe.objects.filter(user=user, recipe_id=recipe_id).exists():
+                s = infos[recipe_id]
+                FavouriteRecipe.objects.create(user=user, recipe_id=recipe_id, title=s["title"][:200],
+                                               image=s["image"][:200], description=s["description"][:300])
+        Note.objects.update_or_create(user=user, defaults={"note": "Use the spinach tonight.\nBatch-cook rice on Sunday."})

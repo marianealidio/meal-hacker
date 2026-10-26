@@ -1,12 +1,12 @@
 from rest_framework import serializers
 from rest_framework.response import Response
-from rest_framework.throttling import ScopedRateThrottle
 from rest_framework.views import APIView
 
 from kitchen.models import InventoryItem
 from meal_hacker.api_errors import api_error
 
 from . import groq
+from .throttles import AssistantThrottle, DemoGlobalThrottle
 
 
 class MessageSerializer(serializers.Serializer):
@@ -24,7 +24,7 @@ class ChatSerializer(serializers.Serializer):
 
 
 class ChatView(APIView):
-    throttle_classes = [ScopedRateThrottle]
+    throttle_classes = [AssistantThrottle, DemoGlobalThrottle]
     throttle_scope = "assistant"
 
     def post(self, request):

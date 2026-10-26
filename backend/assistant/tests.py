@@ -96,3 +96,43 @@ class OfflineChatTests(TestCase):
         p.assert_not_called()
         self.assertEqual(r.status_code, 200)
         self.assertTrue(r.json()["reply"])
+
+
+@override_settings(GROQ_API_KEY="", SPOONACULAR_API_KEY="")
+class DemoThrottleTests(TestCase):                                       # I2
+    def setUp(self):
+        cache.clear()
+        from accounts.demo import ensure_demo_user
+        self.demo = ensure_demo_user()
+
+    def client_for(self, ip):
+        c = APIClient(REMOTE_ADDR=ip)
+        c.force_authenticate(self.demo)
+        return c
+
+    def post(self, c):
+        return c.post("/api/assistant/chat/", {"messages": [{"role": "user", "content": "hi"}]},
+                      format="json").status_code
+
+    def test_demo_visitors_from_different_ips_get_separate_limits(self):
+        a, b = self.client_for("10.0.0.1"), self.client_for("10.0.0.2")
+        codes = [self.post(a) for _ in range(21)]
+        self.assertEqual(codes[:20], [200] * 20)
+        self.assertEqual(codes[20], 429)
+        self.assertEqual(self.post(b), 200)
+
+    def test_demo_global_cap_applies_across_ips(self):
+        from assistant.throttles import DemoGlobalThrottle
+        with mock.patch.object(DemoGlobalThrottle, "THROTTLE_RATES",
+                               {**DemoGlobalThrottle.THROTTLE_RATES, "assistant_demo_global": "3/hour"}):
+            codes = [self.post(self.client_for(f"10.0.1.{i}")) for i in range(4)]
+        self.assertEqual(codes, [200, 200, 200, 429])
+
+    def test_global_cap_ignores_regular_users(self):
+        from assistant.throttles import DemoGlobalThrottle
+        user = User.objects.create_user("ann", password="x")
+        c = APIClient()
+        c.force_authenticate(user)
+        with mock.patch.object(DemoGlobalThrottle, "THROTTLE_RATES",
+                               {**DemoGlobalThrottle.THROTTLE_RATES, "assistant_demo_global": "1/hour"}):
+            self.assertEqual([self.post(c) for _ in range(3)], [200, 200, 200])

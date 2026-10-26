@@ -91,7 +91,11 @@ REST_FRAMEWORK = {
     "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"],
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
     "EXCEPTION_HANDLER": "meal_hacker.api_errors.error_envelope_handler",
-    "DEFAULT_THROTTLE_RATES": {"assistant": "20/hour", "auth": "10/min"},
+    "DEFAULT_THROTTLE_RATES": {
+        "assistant": "20/hour",
+        "assistant_demo_global": "200/hour",
+        "auth": "10/min",
+    },
 }
 
 SPECTACULAR_SETTINGS = {

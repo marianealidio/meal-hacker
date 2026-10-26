@@ -84,6 +84,25 @@ class TestKeysTests(TestCase):
 class DevCsrfOriginsTests(TestCase):
     def test_dev_trusts_local_frontend_ports(self):
         from django.conf import settings
-        for origin in ("http://localhost:3000", "http://localhost:3002", "http://127.0.0.1:3005"):
+        for origin in ("http://localhost:3000", "http://localhost:3002", "http://127.0.0.1:3005",
+                       "http://localhost:3010", "http://127.0.0.1:3010"):
             self.assertIn(origin, settings.CSRF_TRUSTED_ORIGINS)
         self.assertNotIn("http://localhost:3006", settings.CSRF_TRUSTED_ORIGINS)
+
+
+class E2eDatabaseTests(TestCase):
+    def db_name(self, **env):
+        import json, os, subprocess, sys
+        from pathlib import Path
+        full = {k: v for k, v in os.environ.items() if k != "E2E_DB"}
+        full.update({"DJANGO_SETTINGS_MODULE": "meal_hacker.settings.dev", **env})
+        out = subprocess.run(
+            [sys.executable, "-c", "import json; from django.conf import settings; print(json.dumps(str(settings.DATABASES['default']['NAME'])))"],
+            cwd=Path(__file__).resolve().parent.parent, env=full, capture_output=True, text=True, check=True)
+        return Path(json.loads(out.stdout.strip().splitlines()[-1])).name
+
+    def test_e2e_flag_switches_to_separate_database(self):
+        self.assertEqual(self.db_name(E2E_DB="1"), "db-e2e.sqlite3")
+
+    def test_default_database_without_flag(self):
+        self.assertEqual(self.db_name(), "db.sqlite3")

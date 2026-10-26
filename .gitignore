@@ -15,3 +15,5 @@ coverage/
 playwright-report/
 test-results/
 .superpowers/
+db-e2e.sqlite3
+.next-e2e/

@@ -54,4 +54,4 @@ class InventoryDisplayTests(TestCase):
         InventoryItem.objects.create(user=self.user, name="Milk", category="Fridge",
                                      expiry_date=date(2026, 12, 1))
         html = self.c.get(reverse("inventory")).content.decode()
-        self.assertIn("Dec. 1, 2026", html)
+        self.assertIn("1 Dec 2026", html)

@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.test import TestCase
 from rest_framework.test import APIClient
 
@@ -18,7 +19,15 @@ def refresh_csrf(c):
     c.credentials(HTTP_X_CSRFTOKEN=token)
 
 
-class CsrfTests(TestCase):
+class AuthTestCase(TestCase):
+    """Auth endpoints are throttled per IP; start every test with an empty throttle cache."""
+
+    def setUp(self):
+        cache.clear()
+        super().setUp()
+
+
+class CsrfTests(AuthTestCase):
     def test_csrf_endpoint_sets_cookie(self):
         r = APIClient().get("/api/csrf/")
         self.assertEqual(r.status_code, 200)
@@ -31,7 +40,7 @@ class CsrfTests(TestCase):
         self.assertEqual(r.status_code, 403)
 
 
-class SignupLoginTests(TestCase):
+class SignupLoginTests(AuthTestCase):
     def test_signup_creates_user_profile_and_session(self):              # AUTH-001
         c = csrf_client()
         r = c.post("/api/auth/signup/", {"username": "newuser", "password": "Str0ngPass!23"}, format="json")
@@ -76,8 +85,9 @@ class SignupLoginTests(TestCase):
         self.assertIn("error", r.json())
 
 
-class ProfileTests(TestCase):
+class ProfileTests(AuthTestCase):
     def setUp(self):
+        super().setUp()
         self.user = User.objects.create_user("ann", password="Str0ngPass!23")
         self.c = APIClient()
         self.c.force_authenticate(self.user)
@@ -117,7 +127,7 @@ class ProfileTests(TestCase):
         self.assertIn("old_password", r.json()["error"]["fields"])
 
 
-class DemoTests(TestCase):
+class DemoTests(AuthTestCase):
     def test_demo_login_creates_and_logs_in_demo_user(self):
         c = csrf_client()
         r = c.post("/api/auth/demo/")
@@ -139,7 +149,7 @@ class DemoTests(TestCase):
         self.assertFalse(User.objects.get(username=DEMO_USERNAME).has_usable_password())
 
 
-class ReservedUsernameTests(TestCase):
+class ReservedUsernameTests(AuthTestCase):
     def test_signup_as_demo_username_is_rejected(self):
         for name in ("demo", "Demo"):
             r = csrf_client().post("/api/auth/signup/", {"username": name, "password": "Str0ngPass!23"}, format="json")
@@ -148,7 +158,7 @@ class ReservedUsernameTests(TestCase):
         self.assertFalse(User.objects.filter(username__iexact=DEMO_USERNAME).exists())
 
 
-class PasswordWhitespaceTests(TestCase):
+class PasswordWhitespaceTests(AuthTestCase):
     def test_password_whitespace_is_significant(self):
         r = csrf_client().post("/api/auth/signup/", {"username": "spacey", "password": "  Str0ngPass!23  "},
                                format="json")
@@ -159,7 +169,7 @@ class PasswordWhitespaceTests(TestCase):
         self.assertEqual(r.json()["error"]["code"], "invalid_credentials")
 
 
-class MissingProfileTests(TestCase):
+class MissingProfileTests(AuthTestCase):
     def test_me_creates_missing_profile(self):
         user = User.objects.create_user("ghost", password="Str0ngPass!23")
         Profile.objects.filter(user=user).delete()
@@ -171,7 +181,7 @@ class MissingProfileTests(TestCase):
         self.assertTrue(Profile.objects.filter(user=user).exists())
 
 
-class DemoProfileTests(TestCase):
+class DemoProfileTests(AuthTestCase):
     def test_demo_user_cannot_patch_profile(self):
         c = csrf_client()
         c.post("/api/auth/demo/")
@@ -182,7 +192,7 @@ class DemoProfileTests(TestCase):
         self.assertNotEqual(Profile.objects.get(user__username=DEMO_USERNAME).display_name, "Hacker")
 
 
-class FullwidthUsernameTests(TestCase):
+class FullwidthUsernameTests(AuthTestCase):
     def test_fullwidth_demo_is_rejected(self):
         r = csrf_client().post("/api/auth/signup/", {"username": "ｄｅｍｏ",
                                                      "password": "Str0ngPass!23"}, format="json")
@@ -191,7 +201,7 @@ class FullwidthUsernameTests(TestCase):
         self.assertFalse(User.objects.filter(username=DEMO_USERNAME).exists())
 
 
-class PaddedPasswordSignupTests(TestCase):
+class PaddedPasswordSignupTests(AuthTestCase):
     def test_padded_password_logs_in_when_sent_exactly_as_typed(self):
         padded = "  Str0ngPass!23  "
         r = csrf_client().post("/api/auth/signup/", {"username": "padder", "password": padded}, format="json")
@@ -199,3 +209,34 @@ class PaddedPasswordSignupTests(TestCase):
         r = csrf_client().post("/api/auth/login/", {"username": "padder", "password": padded}, format="json")
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.json()["username"], "padder")
+
+
+class AuthThrottleTests(AuthTestCase):                                  # I4
+    def test_eleventh_login_attempt_is_throttled(self):
+        User.objects.create_user("ann", password="Str0ngPass!23")
+        c = csrf_client()
+        codes = [c.post("/api/auth/login/", {"username": "ann", "password": "nope"}, format="json").status_code
+                 for _ in range(10)]
+        self.assertEqual(codes, [400] * 10)
+        r = c.post("/api/auth/login/", {"username": "ann", "password": "Str0ngPass!23"}, format="json")
+        self.assertEqual(r.status_code, 429)
+        self.assertEqual(r.json()["error"]["code"], "throttled")
+        self.assertEqual(r.json()["error"]["fields"], {})
+
+    def test_signup_and_demo_share_the_auth_limit(self):
+        c = csrf_client()
+        for i in range(10):
+            c.post("/api/auth/signup/", {"username": f"user{i}", "password": "123"}, format="json")
+        self.assertEqual(c.post("/api/auth/demo/").status_code, 429)
+        self.assertEqual(c.post("/api/auth/signup/", {"username": "late", "password": "Str0ngPass!23"},
+                                format="json").status_code, 429)
+
+    def test_limit_is_per_ip(self):
+        User.objects.create_user("ann", password="Str0ngPass!23")
+        c = csrf_client()
+        for _ in range(11):
+            c.post("/api/auth/login/", {"username": "ann", "password": "nope"}, format="json",
+                   REMOTE_ADDR="10.0.0.1")
+        r = c.post("/api/auth/login/", {"username": "ann", "password": "Str0ngPass!23"}, format="json",
+                   REMOTE_ADDR="10.0.0.2")
+        self.assertEqual(r.status_code, 200)

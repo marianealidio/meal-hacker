@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.management import call_command
 from django.test import TestCase, override_settings
 from rest_framework.test import APIClient
@@ -11,6 +12,9 @@ from recipes.models import FavouriteRecipe
 
 @override_settings(SPOONACULAR_API_KEY="")
 class SeedDemoTests(TestCase):
+    def setUp(self):
+        cache.clear()
+
     def test_seed_creates_a_full_kitchen(self):
         call_command("seed_demo")
         demo = User.objects.get(username=DEMO_USERNAME)

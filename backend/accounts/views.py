@@ -3,7 +3,7 @@ from django.middleware.csrf import get_token
 from django.views.decorators.csrf import ensure_csrf_cookie
 from rest_framework import status
 from rest_framework.authentication import SessionAuthentication
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
@@ -12,6 +12,7 @@ from meal_hacker.api_errors import api_error
 from .demo import ensure_demo_user
 from .models import get_profile
 from .serializers import LoginSerializer, MeSerializer, PasswordSerializer, SignupSerializer
+from .throttles import AuthRateThrottle
 
 BACKEND = "django.contrib.auth.backends.ModelBackend"
 
@@ -31,6 +32,7 @@ def csrf(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AuthRateThrottle])
 def signup(request):
     enforce_csrf(request)
     s = SignupSerializer(data=request.data)
@@ -42,6 +44,7 @@ def signup(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AuthRateThrottle])
 def login_view(request):
     enforce_csrf(request)
     s = LoginSerializer(data=request.data)
@@ -63,6 +66,7 @@ def logout_view(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([AuthRateThrottle])
 def demo_login(request):
     enforce_csrf(request)
     user = ensure_demo_user()

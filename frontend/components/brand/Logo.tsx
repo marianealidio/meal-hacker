@@ -27,13 +27,28 @@ export function LogoMark({ className }: { className?: string }) {
   );
 }
 
-export function Logo({ className, withWordmark = true }: { className?: string; withWordmark?: boolean }) {
+export function Logo({
+  className,
+  withWordmark = true,
+  tone = "default",
+}: {
+  className?: string;
+  withWordmark?: boolean;
+  /** "light" for dark grounds (sage-deep): cream wordmark with a blush accent. */
+  tone?: "default" | "light";
+}) {
   return (
     <span role="img" aria-label="Meal Hacker" className={cn("inline-flex items-center gap-2.5", className)}>
-      <LogoMark />
+      <LogoMark className={tone === "light" ? "rounded-full ring-1 ring-cream/30" : undefined} />
       {withWordmark && (
-        <span aria-hidden="true" className="font-display text-[1.35rem] font-medium leading-none tracking-[-0.02em] text-sage-deep">
-          Meal <span className="italic text-coral-deep">Hacker</span>
+        <span
+          aria-hidden="true"
+          className={cn(
+            "font-display text-[1.35rem] font-medium leading-none tracking-[-0.02em]",
+            tone === "light" ? "text-cream" : "text-sage-deep",
+          )}
+        >
+          Meal <span className={cn("italic", tone === "light" ? "text-blush" : "text-coral-deep")}>Hacker</span>
         </span>
       )}
     </span>

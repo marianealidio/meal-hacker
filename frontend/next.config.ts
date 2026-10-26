@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 import { BACKEND_URL } from "./lib/backend";
 
 const config: NextConfig = {
+  // The e2e run builds into its own folder so it never clobbers a running dev server's .next.
+  distDir: process.env.NEXT_DIST_DIR || ".next",
   // Django routes end in "/"; Next would otherwise strip it and Django's catch-all would 404.
   skipTrailingSlashRedirect: true,
   async rewrites() {

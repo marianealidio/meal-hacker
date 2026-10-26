@@ -427,7 +427,7 @@ export function useChangePassword() {
   });
 }
 
+/** Errors are shown in the thread by the assistant panel, not as toasts. */
 export function useChat() {
-  const onError = useErrorToast();
-  return useMutation({ mutationFn: (messages: ChatMessage[]) => api.chat(messages), onError });
+  return useMutation({ mutationFn: (messages: ChatMessage[]) => api.chat(messages) });
 }

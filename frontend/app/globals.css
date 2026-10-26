@@ -99,3 +99,7 @@
   [data-shopping] .shop-box[data-checked="true"]::before { content: "\2611"; }
   [data-shopping] .line-through { text-decoration: line-through; }
 }
+
+/* Inside the app shell, toasts clear the fixed bottom tabs (hidden from lg up). */
+body[data-app-shell] { --toast-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 1024px) { body[data-app-shell] { --toast-bottom: 0px; } }

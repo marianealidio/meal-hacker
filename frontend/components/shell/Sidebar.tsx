@@ -12,7 +12,7 @@ import { NavItems } from "./NavItems";
 
 export type SidebarProps = {
   me: Me;
-  /** Items used before expiry this month; wired to real data in Plan C. */
+  /** Items used before expiry this month; null while loading. */
   stat?: number | null;
 };
 
@@ -37,26 +37,28 @@ export function Sidebar({ me, stat = null }: SidebarProps) {
         <p className="text-sm">used before expiry</p>
       </div>
 
-      <div className="flex items-center gap-3 border-t border-cream/15 pt-4">
-        <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-blush font-display text-sage-ink">
-          {initials(name)}
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-medium">{name}</p>
-          <Link href="/profile" className="text-xs text-cream/85 underline decoration-cream/40 focus-visible:outline-butter">
+      <div className="border-t border-cream/15 pt-4">
+        <div className="flex items-center gap-3">
+          <span aria-hidden="true" className="grid size-10 shrink-0 place-items-center rounded-full bg-blush font-display text-sage-ink">
+            {initials(name)}
+          </span>
+          <p className="min-w-0 flex-1 break-words text-sm font-medium leading-snug">{name}</p>
+        </div>
+        <div className="mt-3 flex items-center justify-between gap-2">
+          <Link href="/profile" className="inline-flex min-h-11 items-center rounded-pill px-3 text-sm text-cream/85 underline decoration-cream/40 focus-visible:outline-butter">
             Profile
           </Link>
+          <Button
+            variant="ghost"
+            size="sm"
+            pending={logout.isPending}
+            onClick={() => logout.mutate(undefined, { onSuccess: () => { router.replace("/"); router.refresh(); } })}
+            className="min-h-11 px-3 text-cream hover:bg-white/10 focus-visible:outline-butter"
+          >
+            <LogOut className="size-4" aria-hidden="true" />
+            Log out
+          </Button>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          pending={logout.isPending}
-          onClick={() => logout.mutate(undefined, { onSuccess: () => { router.replace("/"); router.refresh(); } })}
-          className="px-3 text-cream hover:bg-white/10 focus-visible:outline-butter"
-        >
-          <LogOut className="size-4" aria-hidden="true" />
-          Log out
-        </Button>
       </div>
     </aside>
   );

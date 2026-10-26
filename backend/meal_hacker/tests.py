@@ -1,5 +1,19 @@
-from django.test import TestCase
+from unittest import mock
+
+from django.test import TestCase, override_settings
+from django.urls import path
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.test import APIClient
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def _boom(request):
+    raise RuntimeError("kaboom")
+
+
+urlpatterns = [path("api/boom/", _boom)]
 
 
 class HealthTests(TestCase):
@@ -32,6 +46,25 @@ class ErrorEnvelopeTests(TestCase):
         self.assertEqual(resp.status_code, 400)
         self.assertEqual(resp.data["error"]["code"], "invalid")
         self.assertEqual(resp.data["error"]["fields"], {"name": ["This field is required."]})
+
+
+@override_settings(ROOT_URLCONF="meal_hacker.tests")
+class UnhandledErrorTests(TestCase):
+    def test_non_drf_exception_uses_envelope(self):                     # I5
+        c = APIClient(raise_request_exception=False)
+        with self.assertLogs("meal_hacker.api_errors", level="ERROR"):
+            r = c.get("/api/boom/")
+        self.assertEqual(r.status_code, 500)
+        self.assertEqual(r.json(), {"error": {"code": "server_error",
+                                              "message": "Something went wrong on our side.", "fields": {}}})
+
+    def test_handler_rolls_back_atomic_requests(self):
+        from meal_hacker.api_errors import error_envelope_handler
+        with mock.patch("meal_hacker.api_errors.set_rollback") as rollback:
+            with self.assertLogs("meal_hacker.api_errors", level="ERROR"):
+                resp = error_envelope_handler(RuntimeError("x"), {})
+        rollback.assert_called_once_with()
+        self.assertEqual(resp.status_code, 500)
 
 
 class SchemaAccessTests(TestCase):

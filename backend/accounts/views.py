@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from meal_hacker.api_errors import api_error
 
 from .demo import ensure_demo_user
+from .models import get_profile
 from .serializers import LoginSerializer, MeSerializer, PasswordSerializer, SignupSerializer
 
 BACKEND = "django.contrib.auth.backends.ModelBackend"
@@ -73,6 +74,8 @@ def demo_login(request):
 @permission_classes([IsAuthenticated])
 def me(request):
     if request.method == "PATCH":
+        if get_profile(request.user).is_demo:
+            return api_error("demo_read_only", "The demo kitchen's profile can't be changed.", 403)
         s = MeSerializer(request.user, data=request.data, partial=True)
         s.is_valid(raise_exception=True)
         s.save()
@@ -82,7 +85,7 @@ def me(request):
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def change_password(request):
-    if request.user.profile.is_demo:
+    if get_profile(request.user).is_demo:
         return api_error("demo_read_only", "The demo kitchen's password can't be changed.", 403)
     s = PasswordSerializer(data=request.data, context={"request": request})
     s.is_valid(raise_exception=True)

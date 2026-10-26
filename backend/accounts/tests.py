@@ -137,3 +137,46 @@ class DemoTests(TestCase):
     def test_demo_user_cannot_log_in_with_password(self):
         csrf_client().post("/api/auth/demo/")
         self.assertFalse(User.objects.get(username=DEMO_USERNAME).has_usable_password())
+
+
+class ReservedUsernameTests(TestCase):
+    def test_signup_as_demo_username_is_rejected(self):
+        for name in ("demo", "Demo"):
+            r = csrf_client().post("/api/auth/signup/", {"username": name, "password": "Str0ngPass!23"}, format="json")
+            self.assertEqual(r.status_code, 400, name)
+            self.assertIn("username", r.json()["error"]["fields"], name)
+        self.assertFalse(User.objects.filter(username__iexact=DEMO_USERNAME).exists())
+
+
+class PasswordWhitespaceTests(TestCase):
+    def test_password_whitespace_is_significant(self):
+        r = csrf_client().post("/api/auth/signup/", {"username": "spacey", "password": "  Str0ngPass!23  "},
+                               format="json")
+        self.assertEqual(r.status_code, 201)
+        r = csrf_client().post("/api/auth/login/", {"username": "spacey", "password": "Str0ngPass!23"},
+                               format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertEqual(r.json()["error"]["code"], "invalid_credentials")
+
+
+class MissingProfileTests(TestCase):
+    def test_me_creates_missing_profile(self):
+        user = User.objects.create_user("ghost", password="Str0ngPass!23")
+        Profile.objects.filter(user=user).delete()
+        c = APIClient()
+        c.force_authenticate(user)
+        r = c.get("/api/auth/me/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["username"], "ghost")
+        self.assertTrue(Profile.objects.filter(user=user).exists())
+
+
+class DemoProfileTests(TestCase):
+    def test_demo_user_cannot_patch_profile(self):
+        c = csrf_client()
+        c.post("/api/auth/demo/")
+        refresh_csrf(c)
+        r = c.patch("/api/auth/me/", {"display_name": "Hacker"}, format="json")
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(r.json()["error"]["code"], "demo_read_only")
+        self.assertNotEqual(Profile.objects.get(user__username=DEMO_USERNAME).display_name, "Hacker")

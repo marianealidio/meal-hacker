@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 
-from .models import DEMO_USERNAME
+from .models import DEMO_USERNAME, get_profile
 
 
 def ensure_demo_user() -> User:
@@ -8,7 +8,7 @@ def ensure_demo_user() -> User:
     if created or user.has_usable_password():
         user.set_unusable_password()
         user.save()
-    profile = user.profile
+    profile = get_profile(user)
     if not profile.is_demo:
         profile.is_demo = True
         profile.display_name = profile.display_name or "Guest chef"

@@ -2,7 +2,7 @@ from django.contrib.auth import password_validation
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from .models import DIETS, INTOLERANCES
+from .models import DEMO_USERNAME, DIETS, INTOLERANCES, get_profile
 
 
 class MeSerializer(serializers.Serializer):
@@ -15,13 +15,13 @@ class MeSerializer(serializers.Serializer):
     is_demo = serializers.BooleanField(read_only=True)
 
     def to_representation(self, user):
-        p = user.profile
+        p = get_profile(user)
         return {"id": user.id, "username": user.username, "display_name": p.display_name,
                 "diet": p.diet, "intolerances": p.intolerances, "onboarded": p.onboarded,
                 "is_demo": p.is_demo}
 
     def update(self, user, validated):
-        p = user.profile
+        p = get_profile(user)
         for field in ("display_name", "diet", "intolerances", "onboarded"):
             if field in validated:
                 setattr(p, field, validated[field])
@@ -31,10 +31,11 @@ class MeSerializer(serializers.Serializer):
 
 class SignupSerializer(serializers.Serializer):
     username = serializers.RegexField(r"^[\w.@+-]{3,150}$")
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
 
     def validate_username(self, value):
-        if User.objects.filter(username__iexact=value).exists():
+        # "demo" is reserved for the shared demo account, even before it exists.
+        if value.lower() == DEMO_USERNAME or User.objects.filter(username__iexact=value).exists():
             raise serializers.ValidationError("That username is taken. Try another.")
         return value
 
@@ -51,12 +52,12 @@ class SignupSerializer(serializers.Serializer):
 
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
-    password = serializers.CharField(write_only=True)
+    password = serializers.CharField(write_only=True, trim_whitespace=False)
 
 
 class PasswordSerializer(serializers.Serializer):
-    old_password = serializers.CharField()
-    new_password = serializers.CharField()
+    old_password = serializers.CharField(trim_whitespace=False)
+    new_password = serializers.CharField(trim_whitespace=False)
 
     def validate(self, attrs):
         user = self.context["request"].user

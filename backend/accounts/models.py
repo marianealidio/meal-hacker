@@ -19,3 +19,8 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"Profile for {self.user.username}"
+
+
+def get_profile(user) -> Profile:
+    # Single accessor: recreates the Profile if it was ever lost, instead of raising RelatedObjectDoesNotExist.
+    return Profile.objects.get_or_create(user=user)[0]

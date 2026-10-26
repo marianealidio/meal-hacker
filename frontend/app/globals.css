@@ -43,6 +43,12 @@
   border-radius: 999px 999px 24px 24px;
 }
 
+@keyframes mh-fade-in { from { opacity: 0; } }
+@keyframes mh-fade-out { to { opacity: 0; } }
+@keyframes mh-pop-in { from { opacity: 0; scale: 0.96; } }
+@keyframes mh-slide-left { from { translate: 100% 0; } }
+@keyframes mh-slide-up { from { opacity: 0; translate: 0 24px; } }
+
 @layer base {
   html { background: var(--color-cream); color: var(--color-ink); }
   body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
@@ -59,4 +65,5 @@
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
 }

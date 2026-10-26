@@ -89,4 +89,45 @@ describe("apiFetch", () => {
       "/api/plans/?week=2026-10-26", "/api/recipes/716429/", "/api/shopping/5/to-inventory/",
     ]);
   });
+
+  describe("CSRF failure recovery", () => {
+    const csrfFail = () => json({ error: { code: "permission_denied", message: "CSRF Failed: Origin checking failed", fields: {} } }, 403);
+
+    it("refreshes the token and retries once", async () => {
+      document.cookie = "csrftoken=old; path=/";
+      let posts = 0;
+      const f = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) => {
+        if (String(url) === "/api/csrf/") {
+          document.cookie = "csrftoken=fresh; path=/";
+          return json({});
+        }
+        posts += 1;
+        return posts === 1 ? csrfFail() : json({ id: 1 });
+      });
+      await expect(apiFetch("/api/inventory/", { method: "POST", body: {} })).resolves.toMatchObject({ data: { id: 1 } });
+      expect(f.mock.calls.map((c) => c[0])).toEqual(["/api/inventory/", "/api/csrf/", "/api/inventory/"]);
+      const retry = f.mock.calls[2][1] as RequestInit;
+      expect((retry.headers as Record<string, string>)["X-CSRFToken"]).toBe("fresh");
+    });
+
+    it("gives a friendly error after a second failure and does not loop", async () => {
+      document.cookie = "csrftoken=old; path=/";
+      const f = vi.spyOn(globalThis, "fetch").mockImplementation(async (url) =>
+        String(url) === "/api/csrf/" ? json({}) : csrfFail());
+      const err = await apiFetch("/api/inventory/", { method: "POST", body: {} }).catch((e) => e);
+      expect(err).toBeInstanceOf(ApiError);
+      expect(err.status).toBe(403);
+      expect(err.code).toBe("csrf");
+      expect(err.message).toBe("Your session needs a refresh. Reload the page and try again.");
+      expect(f).toHaveBeenCalledTimes(3);
+    });
+
+    it("leaves other 403s alone", async () => {
+      document.cookie = "csrftoken=t; path=/";
+      const f = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+        json({ error: { code: "permission_denied", message: "Nope", fields: {} } }, 403));
+      await expect(apiFetch("/api/inventory/", { method: "POST", body: {} })).rejects.toMatchObject({ code: "permission_denied" });
+      expect(f).toHaveBeenCalledTimes(1);
+    });
+  });
 });

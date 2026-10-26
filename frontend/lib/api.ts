@@ -30,6 +30,20 @@ async function ensureCsrf(): Promise<string> {
   return token ?? "";
 }
 
+const CSRF_MESSAGE = "Your session needs a refresh. Reload the page and try again.";
+
+type Body = { error?: { code?: unknown; message?: string; fields?: Record<string, string[]> } } | null;
+
+async function readBody(res: Response): Promise<Body> {
+  if (res.status === 204) return null;
+  const isJson = (res.headers.get("Content-Type") ?? "").includes("application/json");
+  return isJson ? await res.json().catch(() => null) : null;
+}
+
+function isCsrfFailure(res: Response, body: Body): boolean {
+  return res.status === 403 && typeof body?.error?.message === "string" && body.error.message.startsWith("CSRF Failed");
+}
+
 export async function apiFetch<R>(
   path: string,
   init: { method?: string; body?: unknown; signal?: AbortSignal } = {},
@@ -37,27 +51,38 @@ export async function apiFetch<R>(
   const [pathname] = path.split("?");
   if (!pathname.startsWith("/api/") || !pathname.endsWith("/")) throw new Error("API paths must end with /");
   const method = (init.method ?? "GET").toUpperCase();
-  const headers: Record<string, string> = { Accept: "application/json" };
-  if (init.body !== undefined) headers["Content-Type"] = "application/json";
-  if (UNSAFE.has(method)) headers["X-CSRFToken"] = await ensureCsrf();
+  const attempt = async (): Promise<Response> => {
+    const headers: Record<string, string> = { Accept: "application/json" };
+    if (init.body !== undefined) headers["Content-Type"] = "application/json";
+    if (UNSAFE.has(method)) headers["X-CSRFToken"] = await ensureCsrf();
+    try {
+      return await fetch(path, {
+        method,
+        headers,
+        credentials: "same-origin",
+        signal: init.signal,
+        body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
+      });
+    } catch (err) {
+      if (err instanceof DOMException && err.name === "AbortError") throw err;
+      throw new ApiError(0, "network", NETWORK_MESSAGE);
+    }
+  };
 
-  let res: Response;
-  try {
-    res = await fetch(path, {
-      method,
-      headers,
-      credentials: "same-origin",
-      signal: init.signal,
-      body: init.body !== undefined ? JSON.stringify(init.body) : undefined,
-    });
-  } catch (err) {
-    if (err instanceof DOMException && err.name === "AbortError") throw err;
-    throw new ApiError(0, "network", NETWORK_MESSAGE);
+  let res = await attempt();
+  let body = await readBody(res);
+  if (isCsrfFailure(res, body)) {
+    try {
+      await fetch("/api/csrf/", { credentials: "same-origin" });
+    } catch {
+      throw new ApiError(0, "network", NETWORK_MESSAGE);
+    }
+    res = await attempt();
+    body = await readBody(res);
+    if (isCsrfFailure(res, body)) throw new ApiError(403, "csrf", CSRF_MESSAGE);
   }
   const stale = res.headers.get("X-Stale") === "true";
   if (res.status === 204) return { data: undefined as R, stale };
-  const isJson = (res.headers.get("Content-Type") ?? "").includes("application/json");
-  const body = isJson ? await res.json().catch(() => null) : null;
   if (!res.ok) {
     const e = body?.error;
     if (e && typeof e.code === "string") {
@@ -65,7 +90,7 @@ export async function apiFetch<R>(
     }
     throw new ApiError(res.status, "network", NETWORK_MESSAGE);
   }
-  return { data: body as R, stale };
+  return { data: body as unknown as R, stale };
 }
 
 const get = <R>(p: string) => apiFetch<R>(p).then((r) => r.data);

@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     "core",
     "kitchen",
     "recipes",
+    "planner",
 ]
 
 MIDDLEWARE = [

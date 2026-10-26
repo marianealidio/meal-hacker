@@ -11,6 +11,7 @@ api_patterns = [
     path("", include("accounts.urls")),
     path("", include("kitchen.urls")),
     path("", include("recipes.urls")),
+    path("", include("planner.urls")),
     # Later tasks include() app URLs above this line. The catch-all MUST stay last.
     re_path(r"^.*$", api_not_found),
 ]

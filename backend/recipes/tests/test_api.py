@@ -55,22 +55,60 @@ class SuggestionTests(TestCase):
         flags = [bool(r["uses_expiring"]) for r in results]
         self.assertEqual(flags, sorted(flags, reverse=True))
 
-    def test_profile_diet_and_intolerances_sent_to_search(self):
+    def test_profile_diet_filters_suggestions(self):                     # I3
         p = self.user.profile
         p.diet, p.intolerances = "vegan", ["gluten", "soy"]
         p.save()
+        add(self.user, "garlic", "onion", "tomato", "spinach", "rice", "olive oil", "lemon")
+        results = self.c.get("/api/recipes/suggestions/").json()["results"]
+        self.assertTrue(results)
+        self.assertTrue(all("vegan" in [d.lower() for d in r["diets"]] for r in results))
+
+    def test_vegetarian_diet_accepts_lacto_ovo_and_flags(self):
+        from recipes.services import matches_diet
+        self.assertTrue(matches_diet({"diets": ["lacto ovo vegetarian"]}, "vegetarian"))
+        self.assertTrue(matches_diet({"diets": [], "vegetarian": True}, "vegetarian"))
+        self.assertTrue(matches_diet({"diets": ["Vegan"]}, "vegetarian"))
+        self.assertTrue(matches_diet({"diets": [], "vegan": True}, "vegan"))
+        self.assertFalse(matches_diet({"diets": ["lacto ovo vegetarian"]}, "vegan"))
+        self.assertFalse(matches_diet({"diets": ["dairy free"]}, "vegetarian"))
+        self.assertTrue(matches_diet({"diets": ["pescatarian"]}, "pescetarian"))
+
+    def test_suggestions_use_find_by_ingredients_and_bulk_info(self):
         add(self.user, "garlic", "onion", "tomato")
-        with mock.patch("recipes.services.spoonacular.search",
-                        return_value=spoonacular.Result([])) as s:
-            self.c.get("/api/recipes/suggestions/")
-        params = s.call_args.args[0]
-        self.assertEqual(params["diet"], "vegan")
-        self.assertEqual(params["intolerances"], "gluten,soy")
-        self.assertEqual(params["sort"], "max-used-ingredients")
+        found = [{"id": 5, "title": "T", "image": "i.jpg",
+                  "usedIngredients": [{"name": "garlic", "aisle": "Produce"}, {"name": "onion", "aisle": "Produce"}],
+                  "missedIngredients": [{"name": "basil", "aisle": "Produce"}],
+                  "usedIngredientCount": 2, "missedIngredientCount": 1}]
+        info = [{"id": 5, "title": "T", "summary": "<b>Tasty</b> dish.", "readyInMinutes": 15, "servings": 2,
+                 "diets": ["vegan"]}]
+        with mock.patch("recipes.services.spoonacular.find_by_ingredients",
+                        return_value=spoonacular.Result(found)) as f, \
+                mock.patch("recipes.services.spoonacular.information_bulk",
+                           return_value=spoonacular.Result(info)) as b, \
+                mock.patch("recipes.services.spoonacular.search") as s:
+            body = self.c.get("/api/recipes/suggestions/").json()
+        s.assert_not_called()
+        self.assertEqual(sorted(f.call_args.args[0]), ["garlic", "onion", "tomato"])
+        b.assert_called_once_with([5])
+        r = body["results"][0]
+        self.assertEqual((r["description"], r["ready_in_minutes"], r["servings"], r["diets"]),
+                         ("Tasty dish.", 15, 2, ["vegan"]))
+        self.assertEqual(r["used"], ["garlic", "onion"])
+        self.assertEqual(r["missing"], [{"name": "basil", "aisle": "Produce"}])
+
+    def test_stale_bulk_info_marks_response_stale(self):
+        add(self.user, "garlic", "onion", "tomato")
+        with mock.patch("recipes.services.spoonacular.find_by_ingredients",
+                        return_value=spoonacular.Result([{"id": 5, "usedIngredients": [], "missedIngredients": []}])), \
+                mock.patch("recipes.services.spoonacular.information_bulk",
+                           return_value=spoonacular.Result([], stale=True)):
+            r = self.c.get("/api/recipes/suggestions/")
+        self.assertEqual(r["X-Stale"], "true")
 
     def test_unavailable_returns_503_envelope(self):                      # MEAL error path
         add(self.user, "garlic", "onion", "tomato")
-        with mock.patch("recipes.services.spoonacular.search",
+        with mock.patch("recipes.services.spoonacular.find_by_ingredients",
                         side_effect=spoonacular.SpoonacularUnavailable("down")):
             r = self.c.get("/api/recipes/suggestions/")
         self.assertEqual(r.status_code, 503)
@@ -78,7 +116,7 @@ class SuggestionTests(TestCase):
 
     def test_stale_header(self):
         add(self.user, "garlic", "onion", "tomato")
-        with mock.patch("recipes.services.spoonacular.search",
+        with mock.patch("recipes.services.spoonacular.find_by_ingredients",
                         return_value=spoonacular.Result([], stale=True)):
             r = self.c.get("/api/recipes/suggestions/")
         self.assertEqual(r["X-Stale"], "true")
@@ -102,6 +140,24 @@ class SearchAndDetailTests(TestCase):
         with mock.patch("recipes.services.spoonacular.search", return_value=spoonacular.Result([])) as s:
             self.c.get("/api/recipes/search/?matches_kitchen=1")
         self.assertIn("garlic", s.call_args.args[0]["includeIngredients"])
+
+    def test_matches_kitchen_sends_three_ingredients_expiring_first(self):   # I3
+        add(self.user, "apple", "basil", "carrot")
+        add(self.user, "zucchini", expiry_days=5)
+        add(self.user, "yogurt", expiry_days=1)
+        with mock.patch("recipes.services.spoonacular.search", return_value=spoonacular.Result([])) as s:
+            self.c.get("/api/recipes/search/?matches_kitchen=1")
+        self.assertEqual(s.call_args.args[0]["includeIngredients"], "yogurt,zucchini,apple")
+
+    def test_profile_diet_and_intolerances_sent_to_search(self):
+        p = self.user.profile
+        p.diet, p.intolerances = "vegan", ["gluten", "soy"]
+        p.save()
+        with mock.patch("recipes.services.spoonacular.search", return_value=spoonacular.Result([])) as s:
+            self.c.get("/api/recipes/search/?q=soup")
+        params = s.call_args.args[0]
+        self.assertEqual(params["diet"], "vegan")
+        self.assertEqual(params["intolerances"], "gluten,soy")
 
     def test_detail_have_missing(self):                                   # RD-*
         add(self.user, "garlic")

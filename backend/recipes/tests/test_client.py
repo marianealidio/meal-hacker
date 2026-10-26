@@ -90,6 +90,38 @@ class LiveClientTests(TestCase):
             r = spoonacular.information(42)
         self.assertTrue(r.stale)
 
+    def test_find_by_ingredients_params_and_cache(self):                # I3
+        found = [{"id": 1, "usedIngredients": [], "missedIngredients": []}]
+        with mock.patch("recipes.spoonacular.requests.get", return_value=fake_response(found)) as g:
+            r1 = spoonacular.find_by_ingredients(["garlic", "onion"], number=10)
+            r2 = spoonacular.find_by_ingredients(["garlic", "onion"], number=10)
+        self.assertEqual(g.call_count, 1)
+        self.assertEqual(r1.data, found)
+        self.assertEqual(r2.data, found)
+        self.assertTrue(g.call_args.args[0].endswith("/recipes/findByIngredients"))
+        params = g.call_args.kwargs["params"]
+        self.assertEqual((params["ingredients"], params["ranking"], params["ignorePantry"], params["number"]),
+                         ("garlic,onion", 1, True, 10))
+        entry = RecipeCache.objects.get()
+        self.assertLessEqual(entry.expires_at - entry.fetched_at, timedelta(hours=24))
+
+    def test_information_bulk_params_and_ttl(self):
+        with mock.patch("recipes.spoonacular.requests.get",
+                        return_value=fake_response([{"id": 1}, {"id": 2}])) as g:
+            r = spoonacular.information_bulk([1, 2])
+        self.assertEqual([x["id"] for x in r.data], [1, 2])
+        self.assertTrue(g.call_args.args[0].endswith("/recipes/informationBulk"))
+        params = g.call_args.kwargs["params"]
+        self.assertEqual(params["ids"], "1,2")
+        self.assertFalse(params["includeNutrition"])
+        entry = RecipeCache.objects.get()
+        self.assertGreater(entry.expires_at - entry.fetched_at, timedelta(days=6))
+
+    def test_information_bulk_empty_ids_skips_network(self):
+        with mock.patch("recipes.spoonacular.requests.get") as g:
+            self.assertEqual(spoonacular.information_bulk([]).data, [])
+        g.assert_not_called()
+
     def test_information_uses_detail_ttl(self):
         with mock.patch("recipes.spoonacular.requests.get",
                         return_value=fake_response({"id": 42, "title": "T"})):
@@ -139,3 +171,23 @@ class OfflineClientTests(TestCase):
         self.assertEqual(spoonacular.information(first["id"]).data["id"], first["id"])
         with self.assertRaises(spoonacular.RecipeNotFound):
             spoonacular.information(999999999)
+
+    def test_offline_find_by_ingredients_shape_and_order(self):         # I3
+        r = spoonacular.find_by_ingredients(["spinach", "garlic", "onion"])
+        self.assertTrue(r.data)
+        for x in r.data:
+            for key in ("id", "title", "image", "usedIngredients", "missedIngredients",
+                        "usedIngredientCount", "missedIngredientCount"):
+                self.assertIn(key, x)
+            self.assertNotIn("summary", x)
+            self.assertGreater(x["usedIngredientCount"], 0)
+        order = [(-x["usedIngredientCount"], x["missedIngredientCount"]) for x in r.data]
+        self.assertEqual(order, sorted(order))
+        self.assertLessEqual(len(spoonacular.find_by_ingredients(["garlic"], number=2).data), 2)
+
+    def test_offline_information_bulk_skips_unknown(self):
+        first = spoonacular.search({}).data[0]["id"]
+        r = spoonacular.information_bulk([first, 999999999])
+        self.assertEqual([x["id"] for x in r.data], [first])
+        r.data[0]["title"] = "mutated"
+        self.assertNotEqual(spoonacular.information_bulk([first]).data[0]["title"], "mutated")

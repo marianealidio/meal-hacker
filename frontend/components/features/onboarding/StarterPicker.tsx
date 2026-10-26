@@ -21,6 +21,7 @@ export function StarterPicker() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [days, setDays] = useState("5");
   const [busy, setBusy] = useState(false);
+  const [needsFinish, setNeedsFinish] = useState(false);
   const added = useRef<Set<string>>(new Set());
 
   const toggle = (name: string) =>
@@ -32,7 +33,8 @@ export function StarterPicker() {
 
   async function finish(stocked: boolean) {
     setBusy(true);
-    const total = added.current.size + selected.size;
+    const total = new Set([...added.current, ...selected]).size;
+    let stage: "inventory" | "update" = "inventory";
     try {
       if (stocked) {
         const expiry = toISODate(addDays(new Date(), Number(days)));
@@ -53,12 +55,15 @@ export function StarterPicker() {
           }
         }
       }
+      stage = "update";
       await update.mutateAsync({ onboarded: true });
       if (stocked) toast({ title: "Your kitchen is stocked" });
       router.replace("/dashboard");
     } catch {
       // The mutation hooks toast the error; stay here. Added starters are remembered so a retry skips them.
-      if (added.current.size > 0) toast({ title: `Added ${added.current.size} of ${total}. Try again for the rest.` });
+      if (stage === "update") toast({ title: "Couldn't finish setup. Try again." });
+      else if (added.current.size > 0) toast({ title: `Added ${added.current.size} of ${total}. Try again for the rest.` });
+      setNeedsFinish(stage === "update");
       setBusy(false);
     }
   }
@@ -107,8 +112,8 @@ export function StarterPicker() {
         </Card>
       ))}
       <div className="flex flex-wrap items-center gap-3">
-        <Button disabled={count === 0 || busy} pending={busy && count > 0} onClick={() => finish(true)}>
-          Add {count} {count === 1 ? "ingredient" : "ingredients"}
+        <Button disabled={(count === 0 && !needsFinish) || busy} pending={busy && count > 0} onClick={() => finish(true)}>
+          {count === 0 && needsFinish ? "Finish setup" : `Add ${count} ${count === 1 ? "ingredient" : "ingredients"}`}
         </Button>
         <Button variant="ghost" disabled={busy} onClick={() => finish(false)}>
           Skip for now

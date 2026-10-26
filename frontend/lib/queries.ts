@@ -299,6 +299,7 @@ function mapWeek(week: Week, fn: (meals: MealPlan[], date: string) => MealPlan[]
 
 export function useUpdatePlan() {
   const qc = useQueryClient();
+  const { toast } = useToast();
   const onError = useErrorToast();
   return useMutation({
     mutationFn: (v: { id: number; patch: { planned_date?: string; slot?: Slot } }) => api.updatePlan(v.id, v.patch),
@@ -316,6 +317,8 @@ export function useUpdatePlan() {
       rollback(qc, snapshot);
       onError(err);
     },
+    // Hook-level, so it still fires after the dialog and the moved pill have unmounted.
+    onSuccess: (plan) => toast({ title: `Moved to ${formatDay(plan.planned_date)}` }),
     onSettled: () => qc.invalidateQueries({ queryKey: ["week"] }),
   });
 }

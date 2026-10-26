@@ -160,6 +160,7 @@ describe("Planner page", () => {
     const patch = calls.find((c) => c.method === "PATCH")!;
     expect(JSON.parse(patch.body!)).toEqual({ planned_date: "2026-10-30", slot: "lunch" });
     await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(await screen.findByText("Moved to Fri 30 Oct")).toBeInTheDocument();
   });
 
   it("empty slots link to recipes with the date and slot", async () => {

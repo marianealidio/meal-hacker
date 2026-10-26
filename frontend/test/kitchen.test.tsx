@@ -90,6 +90,13 @@ describe("Kitchen", () => {
     expect(screen.getByText(/Spinach expires soon/)).toBeInTheDocument();
   });
 
+  it("ignores already-expired items when deciding to show the banner", async () => {
+    mockFetch([item(1, "Old milk", -3), item(2, "Rice", 9)]);
+    wrap();
+    await screen.findByText("Old milk");
+    expect(screen.queryByText(/Use it up:/)).not.toBeInTheDocument();
+  });
+
   it("hides the banner when nothing is close to expiring", async () => {
     mockFetch([item(1, "Milk", 9)]);
     wrap();

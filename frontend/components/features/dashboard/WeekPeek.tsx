@@ -41,10 +41,10 @@ export function WeekPeek({ className }: { className?: string }) {
                     "flex size-11 shrink-0 flex-col items-center justify-center rounded-2xl bg-paper text-xs leading-tight text-sage-deep",
                     today && "ring-2 ring-coral ring-offset-2 ring-offset-card",
                   )}
-                  aria-label={today ? `${DAY[d.getDay()]} ${d.getDate()}, today` : undefined}
                 >
                   <span className="font-medium">{DAY[d.getDay()]}</span>
                   <span className="font-display text-sm">{d.getDate()}</span>
+                  {today && <span className="sr-only">, today</span>}
                 </span>
                 <div className="flex min-w-0 flex-1 flex-wrap items-center gap-2">
                   {meals.length === 0 && <span className="text-sm text-muted">Nothing planned</span>}

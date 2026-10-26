@@ -13,7 +13,7 @@ function names(items: InventoryItem[]): string {
 /** Nudges towards recipes when anything is about to go off. Renders nothing otherwise. */
 export function UseItUpBanner({ items }: { items: InventoryItem[] }) {
   const soon = items
-    .filter((i) => i.days_left !== null && i.days_left <= 2)
+    .filter((i) => i.days_left !== null && i.days_left >= 0 && i.days_left <= 2)
     .sort((a, b) => (a.days_left ?? 0) - (b.days_left ?? 0));
   if (soon.length === 0) return null;
   return (

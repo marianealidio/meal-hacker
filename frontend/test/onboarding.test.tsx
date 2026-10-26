@@ -13,7 +13,7 @@ const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json" } });
 const me: Me = { id: 1, username: "cook", display_name: "Cook", diet: "", intolerances: [], onboarded: false, is_demo: false };
 
-function setup(user: Me = me, failPost?: number) {
+function setup(user: Me = me, failPost?: number, failPatch = false) {
   let posts = 0;
   const calls: { url: string; method: string; body?: string }[] = [];
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
@@ -21,6 +21,7 @@ function setup(user: Me = me, failPost?: number) {
     const method = init?.method ?? "GET";
     calls.push({ url, method, body: init?.body as string | undefined });
     if (method === "GET" && url === "/api/auth/me/") return json(user);
+    if (method === "PATCH" && failPatch) return json({ error: { code: "boom", message: "Server hiccup", fields: {} } }, 500);
     if (method === "PATCH") return json({ ...user, onboarded: true });
     if (method === "POST" && url === "/api/inventory/" && ++posts === failPost) {
       return json({ error: { code: "boom", message: "Server hiccup", fields: {} } }, 500);
@@ -91,6 +92,16 @@ describe("onboarding retry", () => {
     const names = calls.filter((c) => c.method === "POST").map((c) => JSON.parse(c.body!).name);
     expect(names).toEqual(["eggs", "rice", "rice", "frozen peas"]);
     expect(calls.filter((c) => c.method === "PATCH")).toHaveLength(1);
+  });
+
+  it("says setup could not finish, not that starters are missing, when only the PATCH fails", async () => {
+    setup(me, undefined, true);
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole("button", { name: "eggs" }));
+    await u.click(screen.getByRole("button", { name: "Add 1 ingredient" }));
+    expect(await screen.findByText("Couldn't finish setup. Try again.")).toBeInTheDocument();
+    expect(screen.queryByText(/Try again for the rest/)).not.toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
   });
 
   it("disables Add while skipping", async () => {

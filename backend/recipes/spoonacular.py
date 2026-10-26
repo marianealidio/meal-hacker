@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Dict, List, Set, Tuple
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 import requests
 from django.conf import settings
@@ -168,10 +168,20 @@ def information_bulk(ids: List[int]) -> Result:
     return Result(result.data if isinstance(result.data, list) else [], result.stale)
 
 
+def _information_params() -> Dict[str, Any]:
+    return {"includeNutrition": False}
+
+
+def cached_information(recipe_id: int) -> Optional[Dict[str, Any]]:
+    """The cached /information payload for a recipe, even if expired. Never calls the network."""
+    entry = RecipeCache.objects.filter(key=_key(f"/recipes/{recipe_id}/information", _information_params())).first()
+    return entry.payload if entry else None
+
+
 def information(recipe_id: int) -> Result:
     if is_offline():
         for raw in _samples():
             if raw["id"] == recipe_id:
                 return Result(copy.deepcopy(raw))
         raise RecipeNotFound(f"No sample recipe {recipe_id}")
-    return _fetch(f"/recipes/{recipe_id}/information", {"includeNutrition": False}, DETAIL_TTL)
+    return _fetch(f"/recipes/{recipe_id}/information", _information_params(), DETAIL_TTL)

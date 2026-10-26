@@ -1,4 +1,5 @@
 from datetime import timedelta
+from typing import Optional
 
 from django.contrib.auth.models import User
 from django.db import transaction
@@ -32,6 +33,8 @@ PLANS = [  # recipe_id, day offset from Monday, slot
 SHOPPING = [("scallions", "1 bunch", "Produce"), ("parmesan", "100 g", "Cheese"),
             ("breadcrumbs", "", "Bakery/Bread"), ("asparagus", "1 bunch", "Produce"), ("eggs", "6", "Dairy")]
 FAVOURITES = [716429, 782585, 715497, 644387]
+# Visitors share one demo kitchen; it is reset lazily on the first demo login after this age.
+DEMO_MAX_AGE = timedelta(hours=24)
 
 
 def ensure_demo_user() -> User:
@@ -49,17 +52,41 @@ def ensure_demo_user() -> User:
     return user
 
 
-def seed_demo_data(user: User, reset: bool = False) -> None:
+def _is_fresh(user: User, max_age: Optional[timedelta]) -> bool:
+    seeded = get_profile(user).demo_seeded_at
+    return max_age is not None and seeded is not None and timezone.now() - seeded < max_age
+
+
+def refresh_demo_if_stale(user: User) -> None:
+    """Reset the shared demo kitchen if it was last seeded more than DEMO_MAX_AGE ago."""
+    if not _is_fresh(user, DEMO_MAX_AGE):
+        seed_demo_data(user, reset=True, max_age=DEMO_MAX_AGE)
+
+
+def _needs_seed(user: User, reset: bool, max_age: Optional[timedelta]) -> bool:
+    if reset:
+        return not _is_fresh(user, max_age)
+    return not user.inventory.exists()
+
+
+def seed_demo_data(user: User, reset: bool = False, max_age: Optional[timedelta] = None) -> None:
+    """Fill the demo kitchen. reset=True wipes it first; with max_age the reset is skipped when the
+    kitchen was seeded within max_age (the lazy path, where several logins may race)."""
     from kitchen.models import InventoryItem, Note
     from planner.models import MealPlan, ShoppingListItem
     from recipes import spoonacular
     from recipes.models import FavouriteRecipe
     from recipes.normalise import summary_from_api
 
-    # Network lookups happen before the transaction so no DB lock is held during I/O.
+    if not _needs_seed(user, reset, max_age):
+        return
+
+    # Recipe lookups happen before the transaction so no DB lock is held during I/O.
+    # Any cached payload, even an expired one, beats spending API credits on a reset.
     def info(recipe_id):
         try:
-            return summary_from_api(spoonacular.information(recipe_id).data, set())
+            raw = spoonacular.cached_information(recipe_id) or spoonacular.information(recipe_id).data
+            return summary_from_api(raw, set())
         except (spoonacular.SpoonacularUnavailable, spoonacular.RecipeNotFound):
             return {"title": "Planned meal", "image": "", "description": ""}
 
@@ -68,17 +95,18 @@ def seed_demo_data(user: User, reset: bool = False) -> None:
     with transaction.atomic():
         # Row lock serialises concurrent seeds; conditions are re-checked after it is taken.
         User.objects.select_for_update().get(pk=user.pk)
+        if not _needs_seed(user, reset, max_age):
+            return
+        p = get_profile(user)
         if reset:
             InventoryItem.objects.filter(user=user).delete()
             MealPlan.objects.filter(user=user).delete()
             ShoppingListItem.objects.filter(user=user).delete()
             FavouriteRecipe.objects.filter(user=user).delete()
             Note.objects.filter(user=user).delete()
-            p = get_profile(user)
             p.display_name, p.diet, p.intolerances, p.onboarded, p.is_demo = "Guest chef", "", [], True, True
-            p.save()
-        elif user.inventory.exists():
-            return
+        p.demo_seeded_at = timezone.now()
+        p.save()
 
         today = timezone.localdate()
         now = timezone.now()

@@ -122,6 +122,15 @@ class LiveClientTests(TestCase):
             self.assertEqual(spoonacular.information_bulk([]).data, [])
         g.assert_not_called()
 
+    def test_cached_information_ignores_expiry_and_never_fetches(self):  # I1
+        with mock.patch("recipes.spoonacular.requests.get", return_value=fake_response({"id": 42, "title": "T"})):
+            spoonacular.information(42)
+        RecipeCache.objects.update(expires_at=timezone.now() - timedelta(days=30))
+        with mock.patch("recipes.spoonacular.requests.get") as g:
+            self.assertEqual(spoonacular.cached_information(42)["title"], "T")
+            self.assertIsNone(spoonacular.cached_information(43))
+        g.assert_not_called()
+
     def test_information_uses_detail_ttl(self):
         with mock.patch("recipes.spoonacular.requests.get",
                         return_value=fake_response({"id": 42, "title": "T"})):

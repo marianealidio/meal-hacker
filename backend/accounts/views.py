@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from meal_hacker.api_errors import api_error
 
-from .demo import ensure_demo_user
+from .demo import ensure_demo_user, refresh_demo_if_stale
 from .models import get_profile
 from .serializers import LoginSerializer, MeSerializer, PasswordSerializer, SignupSerializer
 from .throttles import AuthRateThrottle
@@ -70,6 +70,7 @@ def logout_view(request):
 def demo_login(request):
     enforce_csrf(request)
     user = ensure_demo_user()
+    refresh_demo_if_stale(user)
     login(request, user, backend=BACKEND)
     return Response(MeSerializer(user).data)
 

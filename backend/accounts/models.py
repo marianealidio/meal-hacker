@@ -16,6 +16,7 @@ class Profile(models.Model):
     intolerances = models.JSONField(default=list, blank=True)
     onboarded = models.BooleanField(default=False)
     is_demo = models.BooleanField(default=False)
+    demo_seeded_at = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"Profile for {self.user.username}"

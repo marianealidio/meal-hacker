@@ -68,3 +68,11 @@ describe("(auth) layout", () => {
     expect(screen.getByText("login form")).toBeInTheDocument();
   });
 });
+
+describe("(app) layout onboarding", () => {
+  it("redirects a non-onboarded user to onboarding", async () => {
+    getSession.mockResolvedValue({ ...user, onboarded: false });
+    await expect(AppLayout({ children: <p>x</p> })).rejects.toThrow("NEXT_REDIRECT");
+    expect(redirect).toHaveBeenCalledWith("/onboarding");
+  });
+});

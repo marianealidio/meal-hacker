@@ -149,7 +149,7 @@ export function useStats() {
 // ---------------------------------------------------------------------------
 // Kitchen and notes
 
-export function useAddInventory() {
+export function useAddInventory({ quiet = false }: { quiet?: boolean } = {}) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const onError = useErrorToast();
@@ -157,7 +157,7 @@ export function useAddInventory() {
     mutationFn: (input: InventoryInput) => api.addInventory(input),
     onError,
     onSuccess: (item) => {
-      toast({ title: `Added ${item.name} to your kitchen` });
+      if (!quiet) toast({ title: `Added ${item.name} to your kitchen` });
       invalidateKitchen(qc);
     },
   });
@@ -401,7 +401,7 @@ export function useClearChecked() {
 // ---------------------------------------------------------------------------
 // Profile and assistant
 
-export function useUpdateMe() {
+export function useUpdateMe({ quiet = false }: { quiet?: boolean } = {}) {
   const qc = useQueryClient();
   const { toast } = useToast();
   const onError = useErrorToast();
@@ -411,7 +411,8 @@ export function useUpdateMe() {
     onSuccess: (me) => {
       qc.setQueryData(queryKeys.me, me);
       qc.invalidateQueries({ queryKey: queryKeys.suggestions });
-      toast({ title: "Profile saved" });
+      qc.invalidateQueries({ queryKey: ["search"] });
+      if (!quiet) toast({ title: "Profile saved" });
     },
   });
 }

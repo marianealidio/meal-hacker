@@ -9,5 +9,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     const path = (await headers()).get("x-pathname") ?? "/dashboard";
     redirect("/login?next=" + encodeURIComponent(path));
   }
+  const path = ((await headers()).get("x-pathname") ?? "/dashboard").split("?")[0];
+  const exempt = path === "/onboarding" || path.startsWith("/onboarding/") || path === "/profile" || path.startsWith("/profile/");
+  if (me.onboarded === false && !exempt) redirect("/onboarding");
   return <AppShell me={me}>{children}</AppShell>;
 }

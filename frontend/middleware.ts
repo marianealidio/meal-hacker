@@ -16,5 +16,6 @@ export const config = {
     "/planner/:path*",
     "/shopping/:path*",
     "/profile/:path*",
+    "/onboarding/:path*",
   ],
 };

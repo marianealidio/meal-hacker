@@ -180,3 +180,22 @@ class DemoProfileTests(TestCase):
         self.assertEqual(r.status_code, 403)
         self.assertEqual(r.json()["error"]["code"], "demo_read_only")
         self.assertNotEqual(Profile.objects.get(user__username=DEMO_USERNAME).display_name, "Hacker")
+
+
+class FullwidthUsernameTests(TestCase):
+    def test_fullwidth_demo_is_rejected(self):
+        r = csrf_client().post("/api/auth/signup/", {"username": "ｄｅｍｏ",
+                                                     "password": "Str0ngPass!23"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("username", r.json()["error"]["fields"])
+        self.assertFalse(User.objects.filter(username=DEMO_USERNAME).exists())
+
+
+class PaddedPasswordSignupTests(TestCase):
+    def test_padded_password_logs_in_when_sent_exactly_as_typed(self):
+        padded = "  Str0ngPass!23  "
+        r = csrf_client().post("/api/auth/signup/", {"username": "padder", "password": padded}, format="json")
+        self.assertEqual(r.status_code, 201)
+        r = csrf_client().post("/api/auth/login/", {"username": "padder", "password": padded}, format="json")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["username"], "padder")

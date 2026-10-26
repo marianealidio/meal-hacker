@@ -1,3 +1,5 @@
+import unicodedata
+
 from django.contrib.auth import password_validation
 from django.contrib.auth.models import User
 from rest_framework import serializers
@@ -30,10 +32,12 @@ class MeSerializer(serializers.Serializer):
 
 
 class SignupSerializer(serializers.Serializer):
-    username = serializers.RegexField(r"^[\w.@+-]{3,150}$")
+    username = serializers.RegexField(r"^[A-Za-z0-9_.@+-]{3,150}$")
     password = serializers.CharField(write_only=True, trim_whitespace=False)
 
     def validate_username(self, value):
+        # Compare the form Django will store (NFKC), so look-alike names cannot slip past the checks.
+        value = unicodedata.normalize("NFKC", value)
         # "demo" is reserved for the shared demo account, even before it exists.
         if value.lower() == DEMO_USERNAME or User.objects.filter(username__iexact=value).exists():
             raise serializers.ValidationError("That username is taken. Try another.")

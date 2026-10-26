@@ -91,7 +91,7 @@ function useErrorToast() {
  * Synchronous on purpose: the UI must change in the same tick as the click.
  */
 function optimistic<T>(qc: QueryClient, key: QueryKey, update: (old: T) => T): Snapshot {
-  void qc.cancelQueries({ queryKey: key });
+  void qc.cancelQueries({ queryKey: key }, { revert: false });
   const snapshot = qc.getQueriesData<T>({ queryKey: key }) as Snapshot;
   for (const [k, old] of snapshot) {
     if (old !== undefined) qc.setQueryData<T>(k, update(old as T));
@@ -263,7 +263,9 @@ export function useToggleFavourite() {
       rollback(qc, ...(snapshots ?? []));
       onError(err);
     },
-    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.favourites }),
+    onSettled: () => {
+      for (const key of ["favourites", "suggestions", "search", "recipe"]) qc.invalidateQueries({ queryKey: [key] });
+    },
   });
 }
 
@@ -278,7 +280,7 @@ export function useAddPlan() {
     mutationFn: (input: PlanInput) => api.addPlan(input),
     onError,
     onSuccess: (plan) => {
-      const extra = plan.added_to_shopping > 0 ? ` · ${plan.added_to_shopping} items on your list` : "";
+      const extra = plan.added_to_shopping > 0 ? ` · ${plan.added_to_shopping} ${plan.added_to_shopping === 1 ? "item" : "items"} on your list` : "";
       toast({ title: `Added to ${formatDay(plan.planned_date)}${extra}` });
       for (const key of ["week", "shopping", "stats"]) qc.invalidateQueries({ queryKey: [key] });
     },
@@ -353,6 +355,7 @@ export function useUpdateShopping() {
       rollback(qc, snapshot);
       onError(err);
     },
+    onSettled: () => qc.invalidateQueries({ queryKey: queryKeys.shopping }),
   });
 }
 

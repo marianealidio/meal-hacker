@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { addDays, formatDay, parseISODate, relativeExpiry, startOfWeek, toISODate } from "@/lib/dates";
+import { addDays, formatDay, formatLong, parseISODate, relativeExpiry, startOfWeek, toISODate } from "@/lib/dates";
 
 describe("dates", () => {
   it("round-trips local dates without shifting the day", () => {
@@ -24,5 +24,10 @@ describe("dates", () => {
     [0, "Expires today", "today"], [1, "1 day left", "soon"], [3, "3 days left", "soon"], [9, "9 days left", "fine"],
   ])("relativeExpiry(%s)", (n, label, tone) => {
     expect(relativeExpiry(n as number | null)).toEqual({ label, tone });
+  });
+
+  it("returns an empty string for invalid dates", () => {
+    expect(formatDay("nope")).toBe("");
+    expect(formatLong("")).toBe("");
   });
 });

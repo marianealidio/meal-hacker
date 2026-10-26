@@ -38,4 +38,11 @@ describe("MealCard", () => {
     wrap(<MealCard recipe={recipe} size="compact" />);
     expect(screen.queryByText("A bright weeknight pasta.")).not.toBeInTheDocument();
   });
+
+  it("keeps a 44px hit area on the compact favourite button", () => {
+    wrap(<MealCard recipe={recipe} size="compact" />);
+    const btn = screen.getByRole("button", { name: "Save to favourites" });
+    expect(btn.className).toContain("size-11");
+    expect(btn.className).not.toContain("scale-");
+  });
 });

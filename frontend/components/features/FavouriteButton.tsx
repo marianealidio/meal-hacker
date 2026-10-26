@@ -6,9 +6,9 @@ import { useState } from "react";
 import { useToggleFavourite } from "@/lib/queries";
 import { cn } from "@/lib/cn";
 
-export type FavouriteButtonProps = { recipeId: number; isFavourite: boolean; className?: string };
+export type FavouriteButtonProps = { recipeId: number; isFavourite: boolean; className?: string; compact?: boolean };
 
-export function FavouriteButton({ recipeId, isFavourite, className }: FavouriteButtonProps) {
+export function FavouriteButton({ recipeId, isFavourite, className, compact = false }: FavouriteButtonProps) {
   const toggle = useToggleFavourite();
   const reduce = useReducedMotion();
   const [pops, setPops] = useState(0);
@@ -34,7 +34,7 @@ export function FavouriteButton({ recipeId, isFavourite, className }: FavouriteB
         animate={pops > 0 && !reduce ? { scale: [1, 1.25, 1] } : undefined}
         transition={{ duration: 0.25 }}
       >
-        <Heart className="size-5" fill={isFavourite ? "currentColor" : "none"} aria-hidden="true" />
+        <Heart className={compact ? "size-4" : "size-5"} fill={isFavourite ? "currentColor" : "none"} aria-hidden="true" />
       </motion.span>
     </button>
   );

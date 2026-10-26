@@ -30,7 +30,8 @@ export function MealCard({ recipe, size, onAddToPlan }: MealCardProps) {
       <FavouriteButton
         recipeId={recipe.id}
         isFavourite={recipe.is_favourite}
-        className={cn("absolute right-2 top-2 z-10", compact && "size-11 scale-[0.8] origin-top-right")}
+        className={cn("absolute right-2 top-2 z-10", compact && "right-1 top-1")}
+        compact={compact}
       />
     </div>
   );

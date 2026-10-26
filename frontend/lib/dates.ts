@@ -30,11 +30,13 @@ export function startOfWeek(d: Date): Date {
 
 export function formatDay(s: string): string {
   const d = parseISODate(s);
+  if (Number.isNaN(d.getTime())) return "";
   return `${DAYS_SHORT[d.getDay()]} ${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
 }
 
 export function formatLong(s: string): string {
   const d = parseISODate(s);
+  if (Number.isNaN(d.getTime())) return "";
   return `${DAYS_LONG[d.getDay()]} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
 }
 

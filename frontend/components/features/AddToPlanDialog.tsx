@@ -19,21 +19,25 @@ export type AddToPlanDialogProps = {
   recipe: { id: number; title: string };
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  defaultDate?: string;
+  defaultSlot?: Slot;
 };
 
-export function AddToPlanDialog({ recipe, open, onOpenChange }: AddToPlanDialogProps) {
+export function AddToPlanDialog({ recipe, open, onOpenChange, defaultDate, defaultSlot }: AddToPlanDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent title="Add to plan" description={recipe.title}>
-        <PlanForm recipe={recipe} onDone={() => onOpenChange(false)} />
+        <PlanForm recipe={recipe} defaultDate={defaultDate} defaultSlot={defaultSlot} onDone={() => onOpenChange(false)} />
       </DialogContent>
     </Dialog>
   );
 }
 
-function PlanForm({ recipe, onDone }: { recipe: { id: number }; onDone: () => void }) {
-  const [date, setDate] = useState(() => toISODate(new Date()));
-  const [slot, setSlot] = useState<Slot>("dinner");
+type FormProps = { recipe: { id: number }; defaultDate?: string; defaultSlot?: Slot; onDone: () => void };
+
+function PlanForm({ recipe, defaultDate, defaultSlot, onDone }: FormProps) {
+  const [date, setDate] = useState(() => defaultDate ?? toISODate(new Date()));
+  const [slot, setSlot] = useState<Slot>(defaultSlot ?? "dinner");
   const [addMissing, setAddMissing] = useState(true);
   const add = useAddPlan();
 

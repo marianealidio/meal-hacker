@@ -15,6 +15,17 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import type { SearchParams } from "@/lib/api";
 import { useSearch } from "@/lib/queries";
+import type { Slot } from "@/lib/types";
+
+const SLOT_VALUES: Slot[] = ["breakfast", "lunch", "dinner"];
+const planDefaults = (params: URLSearchParams) => {
+  const date = params.get("plan_date");
+  const slot = params.get("plan_slot");
+  return {
+    defaultDate: date && /^\d{4}-\d{2}-\d{2}$/.test(date) ? date : undefined,
+    defaultSlot: SLOT_VALUES.find((s) => s === slot),
+  };
+};
 
 const GRID = "grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3";
 
@@ -45,8 +56,16 @@ function RecipesBody() {
   const active = hasFilters(filters);
   const [planning, setPlanning] = useState<{ id: number; title: string } | null>(null);
 
+  // Filtering must not lose the slot the user came here to fill.
+  const planQuery = (base: string) => {
+    const keep = new URLSearchParams();
+    for (const k of ["plan_date", "plan_slot"]) if (params.get(k)) keep.set(k, params.get(k)!);
+    const extra = keep.toString();
+    return extra ? `${base}${base ? "&" : "?"}${extra}` : base;
+  };
+
   function update(patch: SearchParams) {
-    router.replace(`/recipes${filtersToQuery({ ...filters, ...patch })}`, { scroll: false });
+    router.replace(`/recipes${planQuery(filtersToQuery({ ...filters, ...patch }))}`, { scroll: false });
   }
 
   const recipes = data?.data.results ?? [];
@@ -55,7 +74,7 @@ function RecipesBody() {
 
   function clearFilters() {
     setResetKey((k) => k + 1);
-    router.replace("/recipes", { scroll: false });
+    router.replace(`/recipes${planQuery("")}`, { scroll: false });
   }
 
   return (
@@ -101,7 +120,7 @@ function RecipesBody() {
       )}
 
       {planning && (
-        <AddToPlanDialog recipe={planning} open onOpenChange={(open) => !open && setPlanning(null)} />
+        <AddToPlanDialog recipe={planning} open {...planDefaults(params)} onOpenChange={(open) => !open && setPlanning(null)} />
       )}
     </div>
   );

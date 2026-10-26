@@ -40,6 +40,16 @@ export function formatLong(s: string): string {
   return `${DAYS_LONG[d.getDay()]} ${d.getDate()} ${MONTHS_LONG[d.getMonth()]}`;
 }
 
+/** "26 Oct – 1 Nov 2026" for the week starting on `start`; both years when it spans New Year. */
+export function formatWeekRange(start: string): string {
+  const a = parseISODate(start);
+  if (Number.isNaN(a.getTime())) return "";
+  const b = addDays(a, 6);
+  const part = (d: Date) => `${d.getDate()} ${MONTHS_SHORT[d.getMonth()]}`;
+  const sameYear = a.getFullYear() === b.getFullYear();
+  return `${part(a)}${sameYear ? "" : ` ${a.getFullYear()}`} \u2013 ${part(b)} ${b.getFullYear()}`;
+}
+
 export function isToday(s: string): boolean {
   return s === toISODate(new Date());
 }

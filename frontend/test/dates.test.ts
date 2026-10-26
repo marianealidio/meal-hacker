@@ -31,3 +31,11 @@ describe("dates", () => {
     expect(formatLong("")).toBe("");
   });
 });
+
+describe("formatWeekRange", () => {
+  it("formats a week within one year and across New Year", async () => {
+    const { formatWeekRange } = await import("@/lib/dates");
+    expect(formatWeekRange("2026-10-26")).toBe("26 Oct – 1 Nov 2026");
+    expect(formatWeekRange("2026-12-28")).toBe("28 Dec 2026 – 3 Jan 2027");
+  });
+});

@@ -33,7 +33,7 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
         </main>
       </div>
       <BottomTabs />
-      <AssistantPanel open={assistantOpen} onOpenChange={setAssistantOpen} />
+      <AssistantPanel userId={me.id} open={assistantOpen} onOpenChange={setAssistantOpen} />
     </div>
   );
 }

@@ -60,7 +60,7 @@ describe("kitchen assistant", () => {
 
   it("sends a suggestion chip and renders the reply", async () => {
     const bodies = mockFetch(() => json({ reply: "Try a spinach omelette." }));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     await userEvent.click(await screen.findByRole("button", { name: "What can I make with spinach?" }));
     expect(await screen.findByText("Try a spinach omelette.")).toBeInTheDocument();
     expect(bodies[0].messages).toEqual([{ role: "user", content: "What can I make with spinach?" }]);
@@ -69,7 +69,7 @@ describe("kitchen assistant", () => {
 
   it("shows the throttle message and restores the typed text on 429", async () => {
     mockFetch(() => json({ error: { code: "throttled", message: "Request was throttled. Expected available in 30 seconds.", fields: {} } }, 429));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     const box = await screen.findByLabelText("Message");
     await userEvent.type(box, "Is this safe?{Enter}");
     expect(await screen.findByText("You've asked a lot this hour — give me a little break and try again soon.")).toBeInTheDocument();
@@ -78,7 +78,7 @@ describe("kitchen assistant", () => {
 
   it("shows the server message on 503", async () => {
     mockFetch(() => json({ error: { code: "assistant_unavailable", message: "The assistant can't answer right now. Try again soon.", fields: {} } }, 503));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     const box = await screen.findByLabelText("Message");
     await userEvent.type(box, "Hello{Enter}");
     expect(await screen.findByText("The assistant can't answer right now. Try again soon.")).toBeInTheDocument();
@@ -87,26 +87,26 @@ describe("kitchen assistant", () => {
 
   it("keeps the thread across unmount and remount, and clears it on request", async () => {
     mockFetch(() => json({ reply: "Three to five days." }));
-    const first = render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    const first = render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     await userEvent.click(await screen.findByRole("button", { name: "How long does cooked rice keep?" }));
     expect(await screen.findByText("Three to five days.")).toBeInTheDocument();
     first.unmount();
 
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     const dialog = await screen.findByRole("dialog", { name: "Kitchen assistant" });
     expect(within(dialog).getByText("Three to five days.")).toBeInTheDocument();
     expect(within(dialog).getByText("How long does cooked rice keep?")).toBeInTheDocument();
 
     await userEvent.click(within(dialog).getByRole("button", { name: "Clear chat" }));
     expect(within(dialog).queryByText("Three to five days.")).not.toBeInTheDocument();
-    expect(sessionStorage.getItem("mh-assistant-thread")).toBe("[]");
+    expect(sessionStorage.getItem("mh-assistant-thread:1")).toBe("[]");
   });
 
   it("sends only the last 20 messages", async () => {
     const old = Array.from({ length: 30 }, (_, i) => ({ role: i % 2 ? "assistant" : "user", content: `m${i}` }));
-    sessionStorage.setItem("mh-assistant-thread", JSON.stringify(old));
+    sessionStorage.setItem("mh-assistant-thread:1", JSON.stringify(old));
     const bodies = mockFetch(() => json({ reply: "ok" }));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     await userEvent.type(await screen.findByLabelText("Message"), "latest{Enter}");
     await waitFor(() => expect(bodies).toHaveLength(1));
     expect(bodies[0].messages).toHaveLength(19);
@@ -116,7 +116,7 @@ describe("kitchen assistant", () => {
 
   it("Shift+Enter adds a newline instead of sending", async () => {
     const bodies = mockFetch(() => json({ reply: "ok" }));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     const box = await screen.findByLabelText("Message");
     await userEvent.type(box, "a{Shift>}{Enter}{/Shift}b");
     expect(box).toHaveValue("a\nb");
@@ -139,7 +139,7 @@ describe("assistant concurrency and storage", () => {
       }
       return json({});
     });
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     const box = await screen.findByLabelText("Message");
     fireEvent.change(box, { target: { value: "hi" } });
     act(() => {
@@ -161,7 +161,7 @@ describe("assistant concurrency and storage", () => {
       }
       return json({});
     });
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     const box = await screen.findByLabelText("Message");
     await userEvent.type(box, "first{Enter}");
     await userEvent.type(box, "second");
@@ -180,7 +180,7 @@ describe("assistant concurrency and storage", () => {
       }
       return json({});
     });
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     await userEvent.type(await screen.findByLabelText("Message"), "hi{Enter}");
     expect(screen.getByRole("button", { name: "Clear chat" })).toBeDisabled();
     release();
@@ -189,9 +189,9 @@ describe("assistant concurrency and storage", () => {
   });
 
   it("falls back to an empty thread when stored data is corrupt", async () => {
-    sessionStorage.setItem("mh-assistant-thread", "{not json");
+    sessionStorage.setItem("mh-assistant-thread:1", "{not json");
     mockFetch(() => json({ reply: "ok" }));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     expect(await screen.findByRole("button", { name: "What can I make with spinach?" })).toBeInTheDocument();
   });
 
@@ -203,14 +203,14 @@ describe("assistant concurrency and storage", () => {
       throw new Error("blocked");
     });
     mockFetch(() => json({ reply: "Works anyway." }));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     await userEvent.click(await screen.findByRole("button", { name: "Swap for buttermilk?" }));
     expect(await screen.findByText("Works anyway.")).toBeInTheDocument();
   });
 
   it("keeps the live conversation list mounted when empty, without a nested status role", async () => {
     mockFetch(() => json({ reply: "ok" }));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     const list = await screen.findByRole("list", { name: "Conversation" });
     expect(list).toHaveAttribute("aria-live", "polite");
     expect(list).toBeEmptyDOMElement();
@@ -218,7 +218,7 @@ describe("assistant concurrency and storage", () => {
 
   it("typing indicator has no nested status role", async () => {
     vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise(() => {}));
-    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
     await userEvent.type(await screen.findByLabelText("Message"), "hi{Enter}");
     expect(await screen.findByText("Thinking")).toBeInTheDocument();
     expect(screen.queryByRole("status")).not.toBeInTheDocument();
@@ -236,5 +236,17 @@ describe("sidebar stat", () => {
     mockFetch(() => json({ reply: "" }));
     render(wrap(<AppShell me={me}><p>content</p></AppShell>));
     expect(screen.getByText("Guest chef", { selector: "aside p" })).not.toHaveClass("truncate");
+  });
+
+  it("does not show one user's thread to another user", async () => {
+    mockFetch(() => json({ reply: "Three to five days." }));
+    const a = render(wrap(<AssistantPanel userId={1} open onOpenChange={() => {}} />));
+    await userEvent.click(await screen.findByRole("button", { name: "How long does cooked rice keep?" }));
+    expect(await screen.findByText("Three to five days.")).toBeInTheDocument();
+    a.unmount();
+
+    render(wrap(<AssistantPanel userId={2} open onOpenChange={() => {}} />));
+    const dialog = await screen.findByRole("dialog", { name: "Kitchen assistant" });
+    expect(within(dialog).queryByText("Three to five days.")).not.toBeInTheDocument();
   });
 });

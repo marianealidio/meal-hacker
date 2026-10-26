@@ -47,6 +47,20 @@ describe("AppHeader account menu", () => {
     expect(refresh).toHaveBeenCalled();
   });
 
+  it("clears stored assistant threads on logout", async () => {
+    logout.mockResolvedValue(undefined);
+    sessionStorage.setItem("mh-assistant-thread:1", "[]");
+    sessionStorage.setItem("mh-assistant-thread:2", "[]");
+    sessionStorage.setItem("other", "keep");
+    wrap(<AppHeader me={me} />);
+    await userEvent.click(screen.getByRole("button", { name: "Account menu" }));
+    await userEvent.click(screen.getByRole("menuitem", { name: "Log out" }));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/"));
+    expect(sessionStorage.getItem("mh-assistant-thread:1")).toBeNull();
+    expect(sessionStorage.getItem("mh-assistant-thread:2")).toBeNull();
+    expect(sessionStorage.getItem("other")).toBe("keep");
+  });
+
   it("shows a toast when logout fails", async () => {
     logout.mockRejectedValue(new Error("boom"));
     wrap(<AppHeader me={me} />);

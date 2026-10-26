@@ -65,6 +65,11 @@ export function useLogout() {
     mutationFn: () => api.logout(),
     onError: () => toast({ title: "Couldn't log out. Try again." }),
     onSuccess: () => {
+      try {
+        for (const key of Object.keys(sessionStorage)) if (key.startsWith("mh-assistant-thread")) sessionStorage.removeItem(key);
+      } catch {
+        /* storage unavailable: nothing to clear */
+      }
       qc.clear();
       qc.setQueryData(queryKeys.me, null);
     },
@@ -207,6 +212,7 @@ export function useSaveNote() {
   const qc = useQueryClient();
   const onError = useErrorToast();
   return useMutation({
+    scope: { id: "note" },
     mutationFn: (note: string) => api.saveNote(note),
     onError,
     onSuccess: (saved) => qc.setQueryData(queryKeys.note, saved),

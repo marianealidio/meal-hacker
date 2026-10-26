@@ -11,14 +11,14 @@ import { useChat } from "@/lib/queries";
 import type { ChatMessage } from "@/lib/types";
 import { ChatThread } from "./ChatThread";
 
-const STORAGE_KEY = "mh-assistant-thread";
+const keyFor = (userId: number) => `mh-assistant-thread:${userId}`;
 const SEND_LIMIT = 20;
 const SUGGESTIONS = ["What can I make with spinach?", "How long does cooked rice keep?", "Swap for buttermilk?"];
 const THROTTLED = "You've asked a lot this hour — give me a little break and try again soon.";
 
-function load(): ChatMessage[] {
+function load(key: string): ChatMessage[] {
   try {
-    const raw = JSON.parse(sessionStorage.getItem(STORAGE_KEY) ?? "[]");
+    const raw = JSON.parse(sessionStorage.getItem(key) ?? "[]");
     return Array.isArray(raw)
       ? raw.filter((m): m is ChatMessage => (m?.role === "user" || m?.role === "assistant") && typeof m.content === "string")
       : [];
@@ -27,9 +27,9 @@ function load(): ChatMessage[] {
   }
 }
 
-function save(messages: ChatMessage[]) {
+function save(key: string, messages: ChatMessage[]) {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    sessionStorage.setItem(key, JSON.stringify(messages));
   } catch {
     /* storage unavailable: the thread just won't survive navigation */
   }
@@ -54,10 +54,11 @@ function useIsDesktop() {
   );
 }
 
-export function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenChange: (open: boolean) => void }) {
+export function AssistantPanel({ userId, open, onOpenChange }: { userId: number; open: boolean; onOpenChange: (open: boolean) => void }) {
+  const storageKey = keyFor(userId);
   const desktop = useIsDesktop();
   const chat = useChat();
-  const [messages, setMessages] = useState<ChatMessage[]>(load);
+  const [messages, setMessages] = useState<ChatMessage[]>(() => load(storageKey));
   const [draft, setDraft] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
   const inFlight = useRef(false);
@@ -65,7 +66,7 @@ export function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenCh
 
   const commit = (next: ChatMessage[]) => {
     setMessages(next);
-    save(next);
+    save(storageKey, next);
   };
 
   const send = (raw: string) => {

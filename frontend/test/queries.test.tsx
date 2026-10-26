@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { Toaster } from "@/components/ui/Toaster";
-import { queryKeys, useShopping, useToggleFavourite, useUpdateShopping } from "@/lib/queries";
+import { queryKeys, useSaveNote, useShopping, useToggleFavourite, useUpdateShopping } from "@/lib/queries";
 import type { RecipeSummary, ShoppingItem } from "@/lib/types";
 
 function setup() {
@@ -101,4 +101,29 @@ describe("add plan toast", () => {
       screen.getByText("go").click();
       expect(await screen.findByText(title)).toBeInTheDocument();
     });
+});
+
+describe("note saves", () => {
+  it("runs saves in order: the second PUT starts only after the first settles", async () => {
+    document.cookie = "csrftoken=t; path=/";
+    const { wrapper } = setup();
+    const started: string[] = [];
+    const release: (() => void)[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (_url, init) => {
+      started.push(JSON.parse(init!.body as string).note);
+      await new Promise<void>((r) => release.push(r));
+      return json({ note: "x", updated_at: "" });
+    });
+    const { result } = renderHook(() => useSaveNote(), { wrapper });
+    act(() => {
+      result.current.mutate("one");
+      result.current.mutate("two");
+    });
+    await waitFor(() => expect(started).toEqual(["one"]));
+    await new Promise((r) => setTimeout(r, 30));
+    expect(started).toEqual(["one"]);
+    release[0]();
+    await waitFor(() => expect(started).toEqual(["one", "two"]));
+    release[1]();
+  });
 });

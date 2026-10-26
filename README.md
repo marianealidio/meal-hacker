@@ -25,7 +25,8 @@ python manage.py runserver
 With no `SPOONACULAR_API_KEY` the app serves built-in sample recipes; with no `GROQ_API_KEY` the assistant gives a canned reply.
 
 Run the tests: `python manage.py test`
-API schema: http://localhost:8000/api/schema/
+
+Export the OpenAPI schema: `python manage.py spectacular --file schema.yml` (the `/api/schema/` endpoint needs a logged-in session).
 
 ---
 
@@ -36,7 +37,7 @@ API schema: http://localhost:8000/api/schema/
 | Spoonacular | Recipe suggestions, library, meal details | 50 points / day |
 | Groq (LLaMA 3.1) | AI kitchen chatbot | Free tier |
 
-If the Spoonacular daily limit is reached, recipe pages will show a fallback message. Please try again the following day.
+Every Spoonacular response is cached. If the daily limit is reached or the API is down, the API serves the last cached copy and marks the response with an `X-Stale: true` header; if nothing is cached it returns a `503` with the `recipes_unavailable` error code.
 
 ---
 
@@ -51,15 +52,23 @@ python manage.py runserver 8080
 ```
 
 ---
-## Using the website
 
-1. Click **Sign Up** to create an account
-2. Go to **Inventory** and add at least 3 ingredients (e.g. chicken, garlic, onion) — choose a category (Pantry / Fridge / Freezer) and optionally set an expiry date
-3. Go to **Meal Ideas** to see recipe suggestions based on your inventory
-4. Visit the **Library** to browse recipes, filter by cuisine or diet, and add meals to your calendar
-5. The **Homepage** shows your best meal suggestion of the day, expiring items, a notes section, and an AI kitchen chatbot
-6. The **Calendar** shows your planned meals for the current week
-7. The **Shopping List** collects missing ingredients automatically when you add meals from the Library, or add items manually
+## Try the API
+
+The Next.js frontend is coming; for now the backend is a JSON API under `/api/`.
+
+1. `python manage.py seed_demo` creates the shared demo kitchen (`--reset` wipes and refills it).
+2. `GET /api/csrf/` sets the `csrftoken` cookie and returns the token.
+3. `POST /api/auth/demo/` with the `X-CSRFToken` header logs you in as the demo user.
+4. Explore, for example `GET /api/inventory/`, `GET /api/recipes/suggestions/`, `GET /api/plans/`.
+
+Errors always look like `{"error": {"code": ..., "message": ..., "fields": {...}}}`.
+
+---
+
+## Deploy
+
+`render.yaml` sets up the API and a free Postgres database on Render. Set `CSRF_TRUSTED_ORIGINS` to the Vercel frontend origin(s), comma-separated (for example `https://meal-hacker.vercel.app`), and `ALLOWED_HOSTS` to any custom domain; the Render hostname is allowed automatically. The demo kitchen resets itself on the first demo login after 24 hours.
 
 ---
 

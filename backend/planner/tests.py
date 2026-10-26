@@ -1,5 +1,4 @@
-from datetime import date, timedelta
-from unittest import mock
+from datetime import date
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -7,7 +6,6 @@ from rest_framework.test import APIClient
 
 from kitchen.models import InventoryItem
 from planner.models import MealPlan, ShoppingListItem
-from recipes import spoonacular
 
 
 @override_settings(SPOONACULAR_API_KEY="")
@@ -25,6 +23,16 @@ class PlanTests(TestCase):
         self.assertEqual(body["week_start"], "2026-10-26")
         self.assertEqual(len(body["days"]), 7)
         self.assertEqual(body["days"][6]["date"], "2026-11-01")
+
+    def test_overflow_week_param_is_400(self):
+        self.assertEqual(self.c.get("/api/plans/?week=9999-12-27").status_code, 400)
+
+    def test_meals_ordered_breakfast_lunch_dinner(self):
+        d = date(2026, 10, 27)
+        for slot in ("dinner", "lunch", "breakfast"):
+            MealPlan.objects.create(user=self.user, recipe_id=1, recipe_title=slot, planned_date=d, slot=slot)
+        days = self.c.get("/api/plans/?week=2026-10-26").json()["days"]
+        self.assertEqual([m["slot"] for m in days[1]["meals"]], ["breakfast", "lunch", "dinner"])
 
     def test_bad_week_param_is_400(self):
         self.assertEqual(self.c.get("/api/plans/?week=notadate").status_code, 400)

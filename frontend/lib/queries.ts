@@ -37,11 +37,19 @@ export function useSignup() {
   });
 }
 
-export function useDemoLogin() {
+/**
+ * `onSuccess` is attached to the mutation itself rather than to `mutate()`, so it still
+ * runs if the calling component unmounts before the response arrives.
+ */
+export function useDemoLogin(options: { onSuccess?: () => void } = {}) {
   const qc = useQueryClient();
+  const { onSuccess } = options;
   return useMutation({
     mutationFn: () => api.demo(),
-    onSuccess: (me) => qc.setQueryData(queryKeys.me, me),
+    onSuccess: (me) => {
+      qc.setQueryData(queryKeys.me, me);
+      onSuccess?.();
+    },
   });
 }
 

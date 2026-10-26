@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -34,6 +34,18 @@ describe("OpenKitchenButton", () => {
     await waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
   });
 
+  it("still goes to the dashboard if it unmounts before the response", async () => {
+    push.mockClear();
+    document.cookie = "csrftoken=t; path=/";
+    let resolve!: (r: Response) => void;
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise((r) => { resolve = r; }));
+    const { unmount } = wrap(<OpenKitchenButton />);
+    await userEvent.click(screen.getByRole("button", { name: "Open the kitchen" }));
+    unmount();
+    resolve(new Response(JSON.stringify({ id: 1, username: "demo", is_demo: true }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    await waitFor(() => expect(push).toHaveBeenCalledWith("/dashboard"));
+  });
+
   it("shows the error when the backend is asleep", async () => {
     document.cookie = "csrftoken=t; path=/";
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("<html/>", { status: 502, headers: { "Content-Type": "text/html" } }));
@@ -46,7 +58,7 @@ describe("OpenKitchenButton", () => {
 describe("SiteHeader", () => {
   it("has nav links, log in and the kitchen button", () => {
     wrap(<SiteHeader />);
-    expect(screen.getAllByRole("link", { name: "How it works" })[0]).toHaveAttribute("href", "#how-it-works");
+    expect(screen.getAllByRole("link", { name: "How it works" })[0]).toHaveAttribute("href", "/#how-it-works");
     expect(screen.getAllByRole("link", { name: "Log in" })[0]).toHaveAttribute("href", "/login");
     expect(screen.getAllByRole("button", { name: "Open the kitchen" }).length).toBeGreaterThan(0);
   });
@@ -66,6 +78,13 @@ describe("SiteFooter", () => {
     expect(screen.getByText(/Mariane Alidio/)).toBeInTheDocument();
     expect(screen.getByText(/Unsplash/)).toBeInTheDocument();
     expect(screen.getByText(/Spoonacular/)).toBeInTheDocument();
+  });
+
+  it("groups its links in a footer nav that works from any route", () => {
+    render(<SiteFooter />);
+    const nav = screen.getByRole("navigation", { name: "Footer" });
+    expect(within(nav).getByRole("link", { name: "About" })).toHaveAttribute("href", "/#about");
+    expect(within(nav).getByRole("link", { name: "Features" })).toHaveAttribute("href", "/#features");
   });
 
   it("never says Try the demo", () => {

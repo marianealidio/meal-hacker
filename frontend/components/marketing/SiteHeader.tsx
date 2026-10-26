@@ -11,9 +11,9 @@ import { cn } from "@/lib/cn";
 import { OpenKitchenButton } from "./OpenKitchenButton";
 
 export const NAV_LINKS = [
-  { href: "#features", label: "Features" },
-  { href: "#how-it-works", label: "How it works" },
-  { href: "#about", label: "About" },
+  { href: "/#features", label: "Features" },
+  { href: "/#how-it-works", label: "How it works" },
+  { href: "/#about", label: "About" },
 ] as const;
 
 const FROST_AT = 12;

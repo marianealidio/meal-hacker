@@ -26,7 +26,8 @@ export function OpenKitchenButton({
   className,
 }: OpenKitchenButtonProps) {
   const router = useRouter();
-  const demo = useDemoLogin();
+  // Navigation lives on the mutation, not on mutate(), so it survives an unmount mid-request.
+  const demo = useDemoLogin({ onSuccess: () => router.push("/dashboard") });
   // Guards the gap between a click and the pending re-render, and the navigation after success.
   const inFlight = useRef(false);
   const busy = demo.isPending || demo.isSuccess;
@@ -35,7 +36,6 @@ export function OpenKitchenButton({
     if (inFlight.current) return;
     inFlight.current = true;
     demo.mutate(undefined, {
-      onSuccess: () => router.push("/dashboard"),
       onError: () => {
         inFlight.current = false;
       },

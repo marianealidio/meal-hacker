@@ -31,7 +31,7 @@ export function SiteFooter({ waveFrom = "fill-cream" }: SiteFooterProps) {
   return (
     <footer className="relative isolate">
       <WaveDivider variant={4} from={waveFrom} to="bg-sage-deep" />
-      <div className="relative overflow-hidden bg-sage-deep text-cream">
+      <div className="relative isolate overflow-hidden bg-sage-deep text-cream">
         <Doodle
           name="sprig"
           className="pointer-events-none absolute -right-6 -top-2 -z-10 size-48 rotate-12 text-sage opacity-25 sm:right-6 lg:size-64"
@@ -42,8 +42,8 @@ export function SiteFooter({ waveFrom = "fill-cream" }: SiteFooterProps) {
         />
 
         <div className="mx-auto max-w-6xl px-4 pb-8 pt-12 sm:px-6 md:pt-16 lg:px-8">
-          <div className="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1fr]">
-            <div className="sm:col-span-2 lg:col-span-1">
+          <div className="grid gap-10 lg:grid-cols-[1.6fr_2fr]">
+            <div>
               <Link href="/" className="-m-1.5 inline-flex rounded-pill p-1.5 no-underline focus-visible:outline-butter">
                 <Logo withWordmark tone="light" />
               </Link>
@@ -52,26 +52,28 @@ export function SiteFooter({ waveFrom = "fill-cream" }: SiteFooterProps) {
               </p>
             </div>
 
-            <Column title="Product">
-              <li><a href="#features" className={linkClass}>Features</a></li>
-              <li><a href="#how-it-works" className={linkClass}>How it works</a></li>
-              <li><Link href="/login" className={linkClass}>Log in</Link></li>
-              <li><Link href="/signup" className={linkClass}>Sign up</Link></li>
-            </Column>
+            <nav aria-label="Footer" className="grid grid-cols-2 gap-10">
+              <Column title="Product">
+                <li><a href="/#features" className={linkClass}>Features</a></li>
+                <li><a href="/#how-it-works" className={linkClass}>How it works</a></li>
+                <li><Link href="/login" className={linkClass}>Log in</Link></li>
+                <li><Link href="/signup" className={linkClass}>Sign up</Link></li>
+              </Column>
 
-            <Column title="Project">
-              <li><a href="#about" className={linkClass}>About</a></li>
-              <li>
-                <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={cn(linkClass, "group")}>
-                  GitHub
-                  <ArrowUpRight
-                    aria-hidden="true"
-                    className="size-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
-                  />
-                  <span className="sr-only">(opens in a new tab)</span>
-                </a>
-              </li>
-            </Column>
+              <Column title="Project">
+                <li><a href="/#about" className={linkClass}>About</a></li>
+                <li>
+                  <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={cn(linkClass, "group")}>
+                    GitHub
+                    <ArrowUpRight
+                      aria-hidden="true"
+                      className="size-4 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5"
+                    />
+                    <span className="sr-only">(opens in a new tab)</span>
+                  </a>
+                </li>
+              </Column>
+            </nav>
           </div>
 
           <div className="mt-12 border-t border-cream/15 pt-6">

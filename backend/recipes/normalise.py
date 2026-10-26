@@ -6,11 +6,12 @@ from django.utils.html import strip_tags
 from kitchen.matching import have_ingredient
 
 
-def describe(summary_html: Optional[str], limit: int = 160) -> str:
+def describe(summary_html: Optional[str], limit: Optional[int] = 160) -> str:
+    """Plain text of a Spoonacular summary, cut at a word boundary after `limit` characters (None keeps it all)."""
     if not summary_html:
         return ""
     text = " ".join(html.unescape(strip_tags(summary_html)).split())
-    if len(text) <= limit:
+    if limit is None or len(text) <= limit:
         return text
     cut = text[:limit].rsplit(" ", 1)[0].rstrip(",;:.- ")
     return cut + "…"
@@ -76,6 +77,7 @@ def detail_from_api(raw: Dict[str, Any], inventory: Set[str]) -> Dict[str, Any]:
             "have": have_ingredient(inventory, name),
         })
     base.update({
+        "summary": describe(raw.get("summary"), limit=None),
         "ingredients": ingredients,
         "steps": _steps(raw),
         "source_url": raw.get("sourceUrl") or "",

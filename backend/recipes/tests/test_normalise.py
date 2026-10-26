@@ -72,3 +72,9 @@ class DetailTests(SimpleTestCase):
         names = [(i["name"], i["have"]) for i in d["ingredients"]]
         self.assertEqual(names, [("garlic", True), ("cauliflower florets", False), ("mystery", False)])
         self.assertEqual(d["source_url"], "https://example.com/pasta")
+
+    def test_detail_summary_is_full_plain_text(self):
+        long_text = " ".join(["Tasty"] * 80) + " &amp; done."
+        d = detail_from_api({**RAW, "summary": f"<b>{long_text}</b>"}, set())
+        self.assertTrue(d["description"].endswith("…"))
+        self.assertEqual(d["summary"], " ".join(["Tasty"] * 80) + " & done.")

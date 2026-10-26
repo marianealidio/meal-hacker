@@ -125,4 +125,15 @@ describe("SignupForm", () => {
     expect(body).toContain("newbie");
     expect(body).toContain("Str0ngPass!23");
   });
+
+  it("shows a non-field banner alongside a field error", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(json({ error: { code: "invalid", message: "Some fields need fixing.", fields: { username: ["taken"], non_field_errors: ["Signups are paused."] } } }, 400));
+    wrap(<SignupForm />);
+    await userEvent.type(screen.getByLabelText("Username"), "ann");
+    await userEvent.type(screen.getByLabelText("Password"), "Str0ngPass!23");
+    await userEvent.click(screen.getByRole("button", { name: "Create account" }));
+    expect(await screen.findByText("Signups are paused.")).toBeInTheDocument();
+    expect(screen.getByText("taken")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByLabelText("Username")).toHaveFocus());
+  });
 });

@@ -25,7 +25,7 @@ export function useFormErrors(raw: Error | null) {
   const username = join(fields.username);
   const password = join(fields.password);
   const other = Object.entries(fields).find(([k, v]) => k !== "username" && k !== "password" && v?.length)?.[1][0];
-  const banner = error && !username && !password ? (other ?? error.message) : undefined;
+  const banner = error ? (other ?? (username || password ? undefined : error.message)) : undefined;
 
   const formRef = useRef<HTMLFormElement>(null);
   const bannerRef = useRef<HTMLParagraphElement>(null);

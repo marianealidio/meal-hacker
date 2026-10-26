@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import date, timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -39,6 +39,8 @@ class InventoryApiTests(TestCase):
         self.assertEqual(r.status_code, 201)
         self.assertEqual(r.json()["name"], "Milk")
         self.assertEqual(r.json()["category"], "Fridge")
+        self.assertEqual(r.json()["days_left"], (date(2030, 1, 1) - timezone.localdate()).days)
+        self.assertFalse(r.json()["expires_soon"])
 
     def test_create_from_quick_add_text(self):
         r = self.c.post("/api/inventory/", {"text": "2 red peppers", "category": "Fridge"}, format="json")
@@ -55,6 +57,23 @@ class InventoryApiTests(TestCase):
         r = self.c.post("/api/inventory/", {"name": "Milk", "expiry_date": "31/12/2030"}, format="json")
         self.assertEqual(r.status_code, 400)
         self.assertIn("expiry_date", r.json()["error"]["fields"])
+
+    def test_quick_add_name_too_long_rejected(self):
+        r = self.c.post("/api/inventory/", {"text": "a" * 101}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("name", r.json()["error"]["fields"])
+        self.assertEqual(InventoryItem.objects.count(), 0)
+
+    def test_quick_add_quantity_too_long_rejected(self):
+        r = self.c.post("/api/inventory/", {"text": "1" * 51 + " eggs"}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("quantity", r.json()["error"]["fields"])
+        self.assertEqual(InventoryItem.objects.count(), 0)
+
+    def test_quick_add_text_over_200_rejected(self):
+        r = self.c.post("/api/inventory/", {"text": "a" * 201}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("text", r.json()["error"]["fields"])
 
     def test_invalid_category_rejected(self):
         r = self.c.post("/api/inventory/", {"name": "Milk", "category": "Garage"}, format="json")

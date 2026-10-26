@@ -20,6 +20,12 @@ class MatchingTests(SimpleTestCase):
         self.assertFalse(have_ingredient(inv, "beef"))
         self.assertFalse(have_ingredient(inv, ""))
 
+    def test_normalise_es_plurals(self):
+        self.assertEqual(normalise("peaches"), "peach")
+        self.assertEqual(normalise("boxes"), "box")
+        self.assertEqual(normalise("glasses"), "glass")
+        self.assertEqual(normalise("dishes"), "dish")
+
     def test_short_words_do_not_false_match(self):
         inv = {normalise("egg")}
         self.assertFalse(have_ingredient(inv, "eggplant"))

@@ -5,7 +5,7 @@ from .parsing import parse_quick_add
 
 
 class InventoryItemSerializer(serializers.ModelSerializer):
-    text = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    text = serializers.CharField(write_only=True, required=False, allow_blank=True, max_length=200)
     name = serializers.CharField(max_length=100, required=False, allow_blank=True)
     days_left = serializers.IntegerField(read_only=True)
     expires_soon = serializers.BooleanField(read_only=True)
@@ -23,6 +23,10 @@ class InventoryItemSerializer(serializers.ModelSerializer):
             qty, name = parse_quick_add(text)
             attrs["name"] = name
             attrs.setdefault("quantity", qty)
+            if len(name) > 100:
+                raise serializers.ValidationError({"name": ["Keep the name under 100 characters."]})
+            if len(qty) > 50:
+                raise serializers.ValidationError({"quantity": ["Keep the quantity under 50 characters."]})
         if "name" in attrs:
             attrs["name"] = " ".join(attrs["name"].split())
         creating = self.instance is None

@@ -41,6 +41,16 @@ beforeEach(() => sessionStorage.clear());
 afterEach(() => vi.restoreAllMocks());
 
 describe("kitchen assistant", () => {
+  it("pins the composer below a scrolling thread", async () => {
+    mockFetch(() => json({ reply: "hi" }));
+    render(wrap(<AppShell me={me}><p>content</p></AppShell>));
+    await userEvent.click(screen.getByRole("button", { name: "Open kitchen assistant" }));
+    const dialog = await screen.findByRole("dialog", { name: "Kitchen assistant" });
+    expect(dialog).toHaveClass("flex-col");
+    expect(within(dialog).getByRole("list", { name: "Conversation" }).parentElement).toHaveClass("flex-1", "overflow-y-auto");
+    expect(within(dialog).getByLabelText("Message").closest("form")).toHaveClass("shrink-0");
+  });
+
   it("opens from the header button as a dialog", async () => {
     mockFetch(() => json({ reply: "hi" }));
     render(wrap(<AppShell me={me}><p>content</p></AppShell>));

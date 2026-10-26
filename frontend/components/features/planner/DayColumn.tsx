@@ -18,8 +18,8 @@ export function DayColumn({ date, meals }: { date: string; meals: MealPlan[] }) 
         today && "border-t-4 border-t-coral",
       )}
     >
-      <h3 className="flex items-baseline justify-between gap-2 font-display text-lg font-medium text-sage-deep">
-        {formatDay(date)}
+      <h3 className="flex flex-col items-start gap-0.5 font-display text-lg font-medium text-sage-deep">
+        <span className="whitespace-nowrap">{formatDay(date)}</span>
         {today && <span className="text-xs font-bold uppercase tracking-wide text-coral-deep">Today</span>}
       </h3>
       {SLOTS.map(({ value, label }) => {

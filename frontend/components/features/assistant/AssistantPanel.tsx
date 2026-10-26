@@ -6,6 +6,7 @@ import { ScriptNote } from "@/components/brand/ScriptNote";
 import { Button } from "@/components/ui/Button";
 import { Dialog, Sheet } from "@/components/ui/Dialog";
 import { ApiError } from "@/lib/api";
+import { cn } from "@/lib/cn";
 import { useChat } from "@/lib/queries";
 import type { ChatMessage } from "@/lib/types";
 import { ChatThread } from "./ChatThread";
@@ -104,11 +105,16 @@ export function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenCh
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <Sheet side={desktop ? "right" : "bottom"} title="Kitchen assistant" className="flex flex-col">
-        <div className="flex flex-col gap-4">
-          <ScriptNote>ask me anything about food</ScriptNote>
+      <Sheet
+        side={desktop ? "right" : "bottom"}
+        title="Kitchen assistant"
+        className={cn("flex flex-col overflow-hidden", !desktop && "h-[85dvh]")}
+        bodyClassName="flex min-h-0 flex-1 flex-col"
+      >
+        <div className="flex min-h-0 flex-1 flex-col gap-4">
+          <ScriptNote className="items-start">ask me anything about food</ScriptNote>
           {messages.length === 0 && (
-            <ul className="flex flex-wrap gap-2" aria-label="Suggestions">
+            <ul className="flex shrink-0 flex-wrap gap-2" aria-label="Suggestions">
               {SUGGESTIONS.map((s) => (
                 <li key={s}>
                   <button
@@ -128,7 +134,7 @@ export function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenCh
               e.preventDefault();
               send(draft);
             }}
-            className="flex items-end gap-2"
+            className="flex shrink-0 items-end gap-2"
           >
             <div className="min-w-0 flex-1">
               <label htmlFor="assistant-message" className="mb-1 block text-sm font-medium text-sage-deep">
@@ -151,7 +157,7 @@ export function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenCh
             <Button
               variant="ghost"
               size="sm"
-              className="self-start"
+              className="shrink-0 self-start"
               disabled={chat.isPending}
               onClick={() => {
                 generation.current += 1;

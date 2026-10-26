@@ -64,9 +64,9 @@ export function DialogContent({ title, description, children, className, ...rest
   );
 }
 
-export type SheetProps = PanelProps & { side?: "right" | "bottom" };
+export type SheetProps = PanelProps & { side?: "right" | "bottom"; bodyClassName?: string };
 
-export function Sheet({ side = "right", title, description, children, className, ...rest }: SheetProps) {
+export function Sheet({ side = "right", title, description, children, className, bodyClassName, ...rest }: SheetProps) {
   return (
     <RadixDialog.Portal>
       <RadixDialog.Overlay className={overlay} />
@@ -83,7 +83,7 @@ export function Sheet({ side = "right", title, description, children, className,
       >
         {side === "bottom" && <div aria-hidden="true" className="mx-auto -mt-2 mb-4 h-1.5 w-10 rounded-pill bg-line" />}
         <PanelHeader title={title} description={description} />
-        <div className="mt-5">{children}</div>
+        <div className={cn("mt-5", bodyClassName)}>{children}</div>
         <CloseButton />
       </RadixDialog.Content>
     </RadixDialog.Portal>

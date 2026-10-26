@@ -59,7 +59,7 @@ export function ChatThread({ messages, pending, notice }: { messages: ChatMessag
   }, [messages, pending, notice]);
 
   return (
-    <div ref={ref} className="max-h-[45dvh] overflow-y-auto pr-1">
+    <div ref={ref} className="min-h-0 flex-1 overflow-y-auto pr-1">
       <ul aria-live="polite" aria-label="Conversation" className="flex flex-col gap-3">
         {messages.map((m, i) => (
           <Bubble key={i} role={m.role}>

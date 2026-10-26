@@ -25,7 +25,7 @@ export function AppHeader({ me, onAssistant = () => {} }: { me: Me; onAssistant?
         <Link href="/dashboard" className="mb-2 inline-flex rounded-pill no-underline lg:hidden">
           <Logo />
         </Link>
-        <p className="truncate font-display text-display-md text-sage-deep" suppressHydrationWarning>
+        <p className="break-words font-display text-display-md leading-tight text-sage-deep" suppressHydrationWarning>
           {text}
         </p>
         {me.is_demo && (

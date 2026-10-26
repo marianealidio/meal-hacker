@@ -27,6 +27,15 @@ beforeEach(() => {
   logout.mockReset();
 });
 
+describe("AppHeader greeting", () => {
+  it("wraps a long greeting instead of truncating it", () => {
+    wrap(<AppHeader me={{ ...me, display_name: "Guest chef" }} />);
+    const greeting = screen.getByText(/^Good (morning|afternoon|evening), Guest chef/);
+    expect(greeting).not.toHaveClass("truncate");
+    expect(greeting).toHaveClass("break-words");
+  });
+});
+
 describe("AppHeader account menu", () => {
   it("offers Profile and Log out, and logging out replaces to / then refreshes", async () => {
     logout.mockResolvedValue(undefined);

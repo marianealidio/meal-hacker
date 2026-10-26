@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { cn } from "@/lib/cn";
 import { formatMinutes } from "@/lib/format";
+import { recipeImage } from "@/lib/images";
 import type { RecipeSummary } from "@/lib/types";
 import { FavouriteButton } from "./FavouriteButton";
 
@@ -17,16 +18,20 @@ export function MealCard({ recipe, size, onAddToPlan }: MealCardProps) {
   const compact = size === "compact";
   const hero = size === "hero";
   const time = formatMinutes(recipe.ready_in_minutes);
-  const sizes = hero ? "(min-width: 1024px) 480px, 100vw" : compact ? "96px" : "(min-width: 1024px) 320px, 50vw";
+  const sizes = hero ? "(min-width: 1024px) 420px, 100vw" : compact ? "96px" : "(min-width: 1024px) 320px, 50vw";
 
   const image = (
     <div
       className={cn(
         "relative shrink-0 overflow-hidden bg-paper",
-        compact ? "size-24 rounded-2xl" : cn("w-full rounded-arch", hero ? "aspect-[4/3]" : "aspect-[4/5]"),
+        compact
+          ? "size-24 rounded-2xl"
+          : hero
+            ? "aspect-[16/10] w-full rounded-arch lg:aspect-[4/5] lg:w-[42%]"
+            : "aspect-[4/3] w-full rounded-t-[3.5rem] rounded-b-2xl",
       )}
     >
-      {recipe.image && <Image src={recipe.image} alt="" fill sizes={sizes} className="object-cover" />}
+      {recipe.image && <Image src={recipeImage(recipe.image)} alt="" fill sizes={sizes} className="object-cover" />}
       <FavouriteButton
         recipeId={recipe.id}
         isFavourite={recipe.is_favourite}
@@ -57,9 +62,14 @@ export function MealCard({ recipe, size, onAddToPlan }: MealCardProps) {
   }
 
   return (
-    <article className="relative flex flex-col gap-4 rounded-card border border-line bg-card p-3 shadow-soft transition-shadow hover:shadow-lift">
+    <article
+      className={cn(
+        "relative flex flex-col gap-4 rounded-card border border-line bg-card p-3 shadow-soft transition-shadow hover:shadow-lift",
+        hero && "lg:flex-row lg:items-stretch lg:gap-8 lg:p-4",
+      )}
+    >
       {image}
-      <div className="flex flex-1 flex-col gap-2 px-1 pb-1">
+      <div className={cn("flex flex-1 flex-col gap-2 px-1 pb-1", hero && "lg:min-w-0 lg:justify-center lg:pr-4")}>
         {hero && <p className="font-script text-[1.5rem] leading-none text-coral-deep">tonight&rsquo;s pick</p>}
         {title}
         {recipe.description && (

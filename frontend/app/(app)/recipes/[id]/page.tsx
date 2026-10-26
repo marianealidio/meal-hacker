@@ -18,6 +18,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { ApiError } from "@/lib/api";
 import { formatMinutes } from "@/lib/format";
+import { recipeImage } from "@/lib/images";
 import { useRecipe } from "@/lib/queries";
 import type { RecipeDetail } from "@/lib/types";
 
@@ -77,15 +78,17 @@ function RecipeView({ recipe, stale }: { recipe: RecipeDetail; stale: boolean })
   return (
     <article className="flex flex-col gap-8">
       <div className="flex flex-col gap-5">
-        <div className="relative aspect-video w-full overflow-hidden rounded-card bg-paper lg:aspect-[21/9]">
+        <div className="relative mx-auto aspect-video max-h-[420px] w-full max-w-5xl overflow-hidden rounded-card bg-paper lg:aspect-[21/9]">
           {recipe.image && (
-            <Image src={recipe.image} alt="" fill priority sizes="(min-width: 1024px) 1100px, 100vw" className="object-cover" />
+            <Image src={recipeImage(recipe.image)} alt="" fill priority sizes="(min-width: 1024px) 1024px, 100vw" className="object-cover" />
           )}
         </div>
         {stale && <StaleNotice />}
         <div className="flex max-w-3xl flex-col gap-3">
           <h1 className="text-display-lg text-sage-deep">{recipe.title}</h1>
-          {recipe.description && <p className="text-[1.05rem] leading-relaxed text-ink">{recipe.description}</p>}
+          {(recipe.summary || recipe.description) && (
+            <p className="text-[1.05rem] leading-relaxed text-ink">{recipe.summary || recipe.description}</p>
+          )}
           <div className="flex flex-wrap gap-2">
             {time && <Chip icon={<Clock aria-hidden="true" />}>{time}</Chip>}
             {recipe.servings && <Chip icon={<Users aria-hidden="true" />}>{recipe.servings} servings</Chip>}

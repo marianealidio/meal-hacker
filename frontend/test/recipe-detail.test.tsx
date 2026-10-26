@@ -18,7 +18,7 @@ const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json" } });
 
 const recipe: RecipeDetail = {
-  id: 7, title: "Lemon Pasta", image: "", description: "Bright and quick.", ready_in_minutes: 25, servings: 2,
+  id: 7, title: "Lemon Pasta", image: "", description: "Bright and quick…", summary: "Bright and quick, with lemon, garlic and a long finish that the short description cuts off.", ready_in_minutes: 25, servings: 2,
   diets: ["vegetarian"], used: [], missing: [], is_favourite: false, cuisines: ["Italian"],
   source_url: "https://example.com/pasta",
   ingredients: [
@@ -69,6 +69,26 @@ describe("recipe detail", () => {
     expect(screen.getByText("You have 1 of 3")).toBeInTheDocument();
     expect(screen.getByText(/a handful of parsley/)).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /Original recipe/ })).toHaveAttribute("target", "_blank");
+  });
+
+  it("shows the full summary rather than the truncated description", async () => {
+    mockFetch();
+    wrap();
+    expect(await screen.findByText(/a long finish that the short description cuts off\./)).toBeInTheDocument();
+    expect(screen.queryByText("Bright and quick…")).not.toBeInTheDocument();
+  });
+
+  it("falls back to the description when there is no summary", async () => {
+    mockFetch(() => json({ ...recipe, summary: undefined }));
+    wrap();
+    expect(await screen.findByText("Bright and quick…")).toBeInTheDocument();
+  });
+
+  it("requests the largest recipe image", async () => {
+    mockFetch(() => json({ ...recipe, image: "https://img.spoonacular.com/recipes/7-556x370.jpg" }));
+    wrap();
+    await screen.findByRole("heading", { level: 1, name: "Lemon Pasta" });
+    expect(decodeURIComponent(document.querySelector("img")!.getAttribute("src")!)).toContain("7-636x393.jpg");
   });
 
   it("scales amounts with the servings control", async () => {

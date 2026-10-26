@@ -4,15 +4,15 @@ import { cn } from "@/lib/cn";
 
 const control =
   "w-full rounded-xl border border-line bg-card px-4 text-[0.95rem] text-ink placeholder:text-muted " +
-  "transition-[border-color,box-shadow] duration-150 hover:border-[#D6C9B3] " +
+  "transition-[border-color,box-shadow] duration-150 hover:border-sage/60 " +
   "focus-visible:border-coral-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-deep " +
   "disabled:cursor-not-allowed disabled:bg-paper disabled:text-muted " +
   "aria-invalid:border-coral-deep";
 
 type Shared = { label: ReactNode; name: string; error?: string; hint?: string; id?: string };
 
-function describe(name: string, error?: string, hint?: string) {
-  const ids = [error && `${name}-error`, hint && `${name}-hint`].filter(Boolean).join(" ");
+function describe(name: string, error?: string, hint?: string, extra?: string) {
+  const ids = [error && `${name}-error`, hint && `${name}-hint`, extra].filter(Boolean).join(" ");
   return ids || undefined;
 }
 
@@ -37,7 +37,7 @@ function FieldShell({
         </p>
       )}
       {error && (
-        <p id={`${name}-error`} className="text-xs font-medium text-coral-deep">
+        <p id={`${name}-error`} role="alert" className="text-xs font-medium text-coral-deep">
           {error}
         </p>
       )}
@@ -47,7 +47,7 @@ function FieldShell({
 
 export type TextFieldProps = Shared & Omit<InputHTMLAttributes<HTMLInputElement>, "name">;
 
-export function TextField({ label, name, error, hint, id, className, ...rest }: TextFieldProps) {
+export function TextField({ label, name, error, hint, id, className, "aria-describedby": describedBy, ...rest }: TextFieldProps) {
   const fieldId = id ?? name;
   return (
     <FieldShell id={fieldId} name={name} label={label} error={error} hint={hint} className={className}>
@@ -55,7 +55,7 @@ export function TextField({ label, name, error, hint, id, className, ...rest }: 
         id={fieldId}
         name={name}
         aria-invalid={error ? true : undefined}
-        aria-describedby={describe(name, error, hint)}
+        aria-describedby={describe(name, error, hint, describedBy)}
         className={cn(control, "h-11")}
         {...rest}
       />
@@ -66,7 +66,7 @@ export function TextField({ label, name, error, hint, id, className, ...rest }: 
 export type SelectFieldProps = Shared &
   Omit<SelectHTMLAttributes<HTMLSelectElement>, "name"> & { options: { value: string; label: string }[] };
 
-export function SelectField({ label, name, error, hint, id, options, className, ...rest }: SelectFieldProps) {
+export function SelectField({ label, name, error, hint, id, options, className, "aria-describedby": describedBy, ...rest }: SelectFieldProps) {
   const fieldId = id ?? name;
   return (
     <FieldShell id={fieldId} name={name} label={label} error={error} hint={hint} className={className}>
@@ -75,7 +75,7 @@ export function SelectField({ label, name, error, hint, id, options, className, 
           id={fieldId}
           name={name}
           aria-invalid={error ? true : undefined}
-          aria-describedby={describe(name, error, hint)}
+          aria-describedby={describe(name, error, hint, describedBy)}
           className={cn(control, "h-11 appearance-none pr-10")}
           {...rest}
         >
@@ -96,7 +96,7 @@ export function SelectField({ label, name, error, hint, id, options, className, 
 
 export type TextAreaFieldProps = Shared & Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "name">;
 
-export function TextAreaField({ label, name, error, hint, id, className, rows = 4, ...rest }: TextAreaFieldProps) {
+export function TextAreaField({ label, name, error, hint, id, className, rows = 4, "aria-describedby": describedBy, ...rest }: TextAreaFieldProps) {
   const fieldId = id ?? name;
   return (
     <FieldShell id={fieldId} name={name} label={label} error={error} hint={hint} className={className}>
@@ -105,7 +105,7 @@ export function TextAreaField({ label, name, error, hint, id, className, rows = 
         name={name}
         rows={rows}
         aria-invalid={error ? true : undefined}
-        aria-describedby={describe(name, error, hint)}
+        aria-describedby={describe(name, error, hint, describedBy)}
         className={cn(control, "min-h-24 resize-y py-3 leading-relaxed")}
         {...rest}
       />

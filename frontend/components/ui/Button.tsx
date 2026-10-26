@@ -12,7 +12,7 @@ const base =
   "disabled:cursor-not-allowed disabled:active:translate-y-0 [&:disabled:not([aria-busy=true])]:opacity-55 aria-busy:cursor-progress";
 
 const variants: Record<ButtonVariant, string> = {
-  primary: "bg-coral text-ink shadow-soft hover:bg-[#E2735A] hover:shadow-lift",
+  primary: "bg-coral text-ink shadow-soft hover:brightness-95 hover:shadow-lift",
   secondary: "border-[1.5px] border-sage-deep bg-transparent text-sage-deep hover:bg-sage-deep/5",
   ghost: "bg-transparent text-sage-deep hover:bg-paper",
   dark: "bg-sage-deep text-cream shadow-soft hover:bg-sage-ink hover:shadow-lift",

@@ -35,7 +35,7 @@ function CloseButton() {
   return (
     <RadixDialog.Close
       aria-label="Close"
-      className="absolute right-4 top-4 grid size-10 place-items-center rounded-full text-sage-deep transition-colors hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-deep"
+      className="absolute right-3 top-3 grid size-11 place-items-center rounded-full text-sage-deep transition-colors hover:bg-paper focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-deep"
     >
       <X className="size-5" aria-hidden="true" />
     </RadixDialog.Close>

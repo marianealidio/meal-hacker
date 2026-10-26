@@ -31,5 +31,5 @@ export function TabsTrigger({ className, ...rest }: ComponentProps<typeof RadixT
 }
 
 export function TabsContent({ className, ...rest }: ComponentProps<typeof RadixTabs.Content>) {
-  return <RadixTabs.Content className={cn("pt-6 focus-visible:outline-none", className)} {...rest} />;
+  return <RadixTabs.Content className={cn("pt-6 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-coral-deep", className)} {...rest} />;
 }

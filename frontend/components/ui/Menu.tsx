@@ -35,7 +35,8 @@ export function MenuItem({ tone, className, ...rest }: MenuItemProps) {
         "data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
         tone === "danger"
           ? "text-coral-deep data-[highlighted]:bg-coral-tint data-[highlighted]:text-coral-tint-ink"
-          : "text-ink data-[highlighted]:bg-paper data-[highlighted]:text-sage-deep",
+          : "text-ink data-[highlighted]:bg-sage-tint data-[highlighted]:text-sage-deep",
+        "data-[highlighted]:outline-2 data-[highlighted]:-outline-offset-2 data-[highlighted]:outline-coral-deep",
         className,
       )}
       {...rest}

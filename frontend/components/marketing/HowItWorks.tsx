@@ -34,7 +34,7 @@ const STEPS: Step[] = [
 
 export function HowItWorks() {
   return (
-    <section id="how-it-works" aria-labelledby="how-title" className="scroll-mt-24 bg-paper">
+    <section id="how-it-works" aria-labelledby="how-title" className="scroll-mt-24 overflow-x-clip bg-paper">
       <div className="mx-auto max-w-6xl px-4 py-20 sm:px-6 lg:px-8 lg:py-28">
         <Reveal className="flex flex-col items-center text-center">
           <ScriptNote arrow="down-left" className="ml-24">three little steps</ScriptNote>

@@ -45,7 +45,7 @@ const WEEKS = [38, 55, 46, 72, 64, 88];
 export function Bento() {
   return (
     <section aria-labelledby="bento-title" className="bg-cream">
-      <div className="mx-auto max-w-6xl px-4 pb-24 pt-4 sm:px-6 lg:px-8 lg:pb-32">
+      <div className="mx-auto max-w-6xl px-4 pb-16 pt-4 sm:px-6 lg:px-8 lg:pb-20">
         <Reveal>
           <h2 id="bento-title" className="text-display-lg">
             And a few small luxuries
@@ -62,7 +62,7 @@ export function Bento() {
                 <span className="font-display text-[clamp(4.5rem,3rem+6vw,7.5rem)] font-medium leading-[0.85] tracking-[-0.04em]">12</span>
                 <span className="mb-1 max-w-[9ch] text-[1.05rem] leading-snug">items saved this month</span>
               </p>
-              <div aria-hidden="true" className="flex h-24 items-end gap-2">
+              <div aria-hidden="true" className="flex h-24 items-end gap-2 lg:h-44">
                 {WEEKS.map((h, i) => (
                   <span
                     key={i}
@@ -84,8 +84,8 @@ export function Bento() {
             delay={0.1}
           >
             {/* a little phone sketch, cropped by the tile edge */}
-            <div aria-hidden="true" className="relative mt-8 hidden flex-1 justify-center lg:flex">
-              <div className="absolute -bottom-10 w-[78%] rounded-t-[30px] border-[1.5px] border-b-0 border-sage-deep/40 bg-card p-3 pb-10 shadow-lift">
+            <div aria-hidden="true" className="relative mt-8 hidden min-h-64 flex-1 lg:block">
+              <div className="absolute -bottom-10 inset-x-[11%] top-0 rounded-t-[30px] border-[1.5px] border-b-0 border-sage-deep/40 bg-card p-3 pb-10 shadow-lift">
                 <div className="mx-auto mb-3 h-1.5 w-10 rounded-pill bg-line" />
                 <div className="flex flex-col gap-2">
                   <div className="rounded-xl bg-cream p-2.5">
@@ -99,6 +99,14 @@ export function Bento() {
                   <div className="rounded-xl bg-cream p-2.5">
                     <div className="h-1.5 w-3/4 rounded-pill bg-line" />
                     <div className="mt-2 h-1 w-full rounded-pill bg-line/70"><div className="h-full w-4/5 rounded-pill bg-sage" /></div>
+                  </div>
+                  <div className="rounded-xl bg-cream p-2.5">
+                    <div className="h-1.5 w-3/5 rounded-pill bg-line" />
+                    <div className="mt-2 h-1 w-full rounded-pill bg-line/70"><div className="h-full w-1/3 rounded-pill bg-coral" /></div>
+                  </div>
+                  <div className="rounded-xl bg-cream p-2.5">
+                    <div className="h-1.5 w-2/3 rounded-pill bg-line" />
+                    <div className="mt-2 h-1 w-full rounded-pill bg-line/70"><div className="h-full w-3/5 rounded-pill bg-sage" /></div>
                   </div>
                 </div>
               </div>

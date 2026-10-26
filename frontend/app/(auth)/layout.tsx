@@ -25,7 +25,7 @@ export default async function AuthLayout({ children }: { children: React.ReactNo
           <ScriptNote className="text-blush">welcome back to the kitchen</ScriptNote>
           <ArchImage
             src={PHOTO}
-            alt="A bowl of green soup with fresh herbs"
+            alt="A bowl of tomato soup with basil and croutons"
             sizes="(min-width: 768px) 40vw, 0px"
             className="w-full max-w-72"
           />

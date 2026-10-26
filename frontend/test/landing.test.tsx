@@ -50,4 +50,20 @@ describe("landing page", () => {
     const { container } = renderPage();
     container.querySelectorAll("img").forEach((img) => expect(img.getAttribute("alt")).toBeTruthy());
   });
+
+  it("shows the headline, sub copy and buttons at first paint (no entrance animation)", () => {
+    const { container } = renderPage();
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1.innerHTML).not.toMatch(/animate-/);
+    const textColumn = h1.parentElement!;
+    expect(textColumn.querySelectorAll("p, button, a").length).toBeGreaterThan(3);
+    expect(textColumn.querySelector("[class*='animate-']:not([aria-hidden])")).toBeNull();
+    expect(container.querySelector("#hero-title")).toBe(h1);
+  });
+
+  it("separates the two headline lines with a space and labels the stack list", () => {
+    renderPage();
+    expect(screen.getByRole("heading", { level: 1 }).textContent).toBe("Cook what you have. Waste nothing.");
+    expect(screen.getByRole("list", { name: "Built with" })).toBeInTheDocument();
+  });
 });

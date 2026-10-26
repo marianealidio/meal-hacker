@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 
@@ -90,5 +90,18 @@ describe("SiteFooter", () => {
   it("never says Try the demo", () => {
     const { container } = render(<SiteFooter />);
     expect(container.textContent).not.toMatch(/try the demo/i);
+  });
+});
+
+describe("SiteHeader scroll state", () => {
+  it("frosts the header at every breakpoint once scrolled", () => {
+    wrap(<SiteHeader />);
+    const header = screen.getByRole("banner");
+    expect(header.className).toContain("bg-transparent");
+    Object.defineProperty(window, "scrollY", { value: 200, configurable: true });
+    fireEvent.scroll(window);
+    const cls = header.className.split(/\s+/);
+    for (const c of ["bg-cream/80", "backdrop-blur", "border-line"]) expect(cls).toContain(c);
+    Object.defineProperty(window, "scrollY", { value: 0, configurable: true });
   });
 });

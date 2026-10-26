@@ -16,16 +16,12 @@ const HERO_IMAGE =
   "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?auto=format&fit=crop&w=1200&q=80";
 
 /*
- * Load-in is plain CSS (mh-slide-up with a staggered delay) so the headline is never
- * held hostage by hydration; globals.css flattens it under prefers-reduced-motion.
+ * Text and buttons are visible at first paint (they are the LCP). Only the photo, floating
+ * cards and doodles get a short CSS entrance; globals.css flattens it under reduced motion.
  */
-const rise = "animate-[mh-slide-up_0.9s_cubic-bezier(0.22,1,0.36,1)_both]";
+const rise = "animate-[mh-slide-up_0.5s_cubic-bezier(0.22,1,0.36,1)_both]";
 const float = "animate-[mh-float_6s_ease-in-out_infinite]";
 const drift = "animate-[mh-drift_14s_ease-in-out_infinite]";
-
-function delay(step: number) {
-  return { animationDelay: `${step * 80}ms` };
-}
 
 /** A loose coral pen stroke under the second line of the headline. */
 function Underline() {
@@ -45,7 +41,7 @@ function Underline() {
         strokeLinecap="round"
         pathLength={1}
         strokeDasharray="1"
-        style={{ animation: "mh-draw 1.1s 0.7s cubic-bezier(0.65,0,0.35,1) both" }}
+        style={{ animation: "mh-draw 0.6s 0.1s cubic-bezier(0.65,0,0.35,1) both" }}
       />
     </svg>
   );
@@ -60,17 +56,15 @@ export function Hero() {
             <Doodle name="sparkle" className="size-9 text-coral" />
           </span>
 
-          <div className={rise} style={delay(0)}>
+          <div>
             <ScriptNote arrow="down-right" className="ml-1 text-[1.75rem] sm:ml-3">
               fresh from your fridge
             </ScriptNote>
           </div>
 
           <h1 id="hero-title" className="mt-1 text-display-xl text-sage-deep">
-            <span className={cn("block", rise)} style={delay(1)}>
-              Cook what you have.
-            </span>
-            <span className={cn("block", rise)} style={delay(2)}>
+            <span className="block">Cook what you have.</span>{" "}
+            <span className="block">
               <span className="relative inline-block italic text-coral-deep">
                 Waste nothing.
                 <Underline />
@@ -78,24 +72,24 @@ export function Hero() {
             </span>
           </h1>
 
-          <p className={cn("mt-7 max-w-[46ch] text-lg leading-relaxed text-muted sm:text-[1.15rem]", rise)} style={delay(3)}>
+          <p className="mt-7 max-w-[46ch] text-lg leading-relaxed text-muted sm:text-[1.15rem]">
             {HERO_SUB}
           </p>
 
-          <div className={cn("mt-9 flex flex-wrap items-center gap-3", rise)} style={delay(4)}>
+          <div className="mt-9 flex flex-wrap items-center gap-3">
             <OpenKitchenButton arrow size="lg" />
             <ButtonLink variant="secondary" size="lg" href="/signup">
               Sign up free
             </ButtonLink>
           </div>
 
-          <p className={cn("mt-5 flex items-center gap-2 text-sm text-muted", rise)} style={delay(5)}>
+          <p className="mt-5 flex items-center gap-2 text-sm text-muted">
             <Check aria-hidden="true" className="size-4 text-sage-deep" strokeWidth={2.4} />
             No sign-up needed for the demo kitchen.
           </p>
         </div>
 
-        <div className={cn("relative mx-auto w-[80vw] max-w-[27rem] sm:w-[22rem] lg:mr-0 lg:w-full", rise)} style={delay(2)}>
+        <div className={cn("relative mx-auto w-[80vw] max-w-[27rem] sm:w-[22rem] lg:mr-0 lg:w-full", rise)}>
           <ArchImage
             src={HERO_IMAGE}
             alt="A colourful bowl of roasted vegetables, grains and greens"
@@ -132,7 +126,6 @@ export function Hero() {
             <Card className="max-w-[15rem] py-3 pl-4 pr-4 shadow-lift">
               <p className="font-display text-[1.05rem] leading-tight text-sage-deep">Pasta primavera</p>
               <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
-                <span className="sr-only">·</span>
                 <Chip tone="have">uses 5</Chip>
                 of yours
               </p>

@@ -45,7 +45,7 @@ export function AboutProject() {
 
           <div className="relative -mt-16 w-[86%] rounded-[24px] border border-line bg-card p-5 shadow-lift sm:p-6">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-muted">Built with</p>
-            <ul className="mt-3 flex flex-wrap gap-1.5">
+            <ul aria-label="Built with" className="mt-3 flex flex-wrap gap-1.5">
               {STACK.map((tech) => (
                 <li key={tech} className="rounded-pill border border-line bg-cream px-3 py-1.5 text-[0.8rem] font-medium text-sage-deep">
                   {tech}

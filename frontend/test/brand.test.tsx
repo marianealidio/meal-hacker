@@ -39,3 +39,14 @@ describe("brand", () => {
     expect(screen.getByText("hello")).toBeVisible();
   });
 });
+
+describe("ScriptNote colour", () => {
+  it("drops the default coral-deep when a colour is supplied", async () => {
+    const { ScriptNote } = await import("@/components/brand/ScriptNote");
+    const { container } = render(<><ScriptNote className="text-blush">a</ScriptNote><ScriptNote className="text-[1.75rem]">b</ScriptNote></>);
+    const [a, b] = Array.from(container.children);
+    expect(a.className).toContain("text-blush");
+    expect(a.className).not.toContain("text-coral-deep");
+    expect(b.className).toContain("text-coral-deep");
+  });
+});

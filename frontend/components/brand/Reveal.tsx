@@ -17,7 +17,7 @@ export type RevealProps = {
 
 const EASE_OUT = [0.22, 1, 0.36, 1] as const;
 
-export function Reveal({ children, delay = 0, y = 18, as = "div", className }: RevealProps) {
+export function Reveal({ children, delay = 0, y = 14, as = "div", className }: RevealProps) {
   const reduced = useReducedMotion();
 
   // The server can't know the user's preference, so it renders the motion version
@@ -40,8 +40,8 @@ export function Reveal({ children, delay = 0, y = 18, as = "div", className }: R
       suppressHydrationWarning
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-10% 0px" }}
-      transition={{ duration: 0.7, ease: EASE_OUT, delay }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.45, ease: EASE_OUT, delay }}
     >
       {children}
     </MotionTag>

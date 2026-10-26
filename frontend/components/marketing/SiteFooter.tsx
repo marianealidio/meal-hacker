@@ -38,7 +38,7 @@ export function SiteFooter({ waveFrom = "fill-cream" }: SiteFooterProps) {
         />
         <Doodle
           name="leaf"
-          className="pointer-events-none absolute -bottom-6 left-[38%] -z-10 hidden size-28 -rotate-12 text-sage opacity-20 md:block"
+          className="pointer-events-none absolute -top-8 left-[36%] -z-10 hidden size-24 -rotate-12 text-sage opacity-15 lg:block"
         />
 
         <div className="mx-auto max-w-6xl px-4 pb-8 pt-12 sm:px-6 md:pt-16 lg:px-8">

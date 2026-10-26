@@ -24,7 +24,7 @@ export function AppHeader({ me, onAssistant = () => {} }: { me: Me; onAssistant?
           {text}
         </p>
         {me.is_demo && (
-          <span className="mt-1 inline-block rounded-pill bg-butter px-3 py-0.5 text-xs font-medium text-butter-ink">
+          <span className="mt-1 inline-block rounded-pill bg-butter/40 px-3 py-0.5 text-xs font-medium text-butter-ink">
             Demo kitchen · resets daily
           </span>
         )}

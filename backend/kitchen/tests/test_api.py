@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import timedelta
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -34,12 +34,13 @@ class InventoryApiTests(TestCase):
         self.assertIn(APIClient().get("/api/inventory/").status_code, (401, 403))
 
     def test_create_from_fields(self):
+        expiry = timezone.localdate() + timedelta(days=400)
         r = self.c.post("/api/inventory/", {"name": "Milk", "quantity": "1", "unit": "l",
-                                             "category": "Fridge", "expiry_date": "2030-01-01"}, format="json")
+                                             "category": "Fridge", "expiry_date": expiry.isoformat()}, format="json")
         self.assertEqual(r.status_code, 201)
         self.assertEqual(r.json()["name"], "Milk")
         self.assertEqual(r.json()["category"], "Fridge")
-        self.assertEqual(r.json()["days_left"], (date(2030, 1, 1) - timezone.localdate()).days)
+        self.assertEqual(r.json()["days_left"], 400)
         self.assertFalse(r.json()["expires_soon"])
 
     def test_create_from_quick_add_text(self):

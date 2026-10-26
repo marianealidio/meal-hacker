@@ -150,7 +150,7 @@ Browser ──► Vercel (Next.js 15, App Router, TypeScript)
 ```
 
 ### Repository layout
-- `backend/`: Django project `meal_hacker` with apps `accounts`, `kitchen`, `recipes`, `planner`, `assistant`. Each app has its own models, serializers, views, urls and tests. Existing `core` data is migrated into these apps.
+- `backend/`: Django project `meal_hacker` with apps `accounts`, `kitchen`, `recipes`, `planner`, `assistant`. Each app has its own models, serializers, views, urls and tests. There is no deployed database, so the new apps start from fresh migrations; the legacy `core` app is deleted.
 - `frontend/`: Next.js. Route groups `app/(marketing)`, `app/(auth)`, `app/(app)`; `components/ui`, `components/features`; `lib/api.ts` (typed client); TanStack Query with optimistic updates.
 - `docs/superpowers/`: specs and plans. `.github/workflows/`: CI. `render.yaml`.
 

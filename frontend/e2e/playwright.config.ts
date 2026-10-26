@@ -33,7 +33,7 @@ export default defineConfig({
       cwd: BACKEND,
       url: `${API}/api/health/`,
       reuseExistingServer: false,
-      stdout: "ignore",
+      stdout: process.env.CI ? "pipe" : "ignore",
       timeout: 120_000,
       env: {
         SPOONACULAR_API_KEY: "",
@@ -47,7 +47,7 @@ export default defineConfig({
       cwd: FRONTEND,
       url: WEB,
       reuseExistingServer: false,
-      stdout: "ignore",
+      stdout: process.env.CI ? "pipe" : "ignore",
       timeout: 300_000,
       env: { BACKEND_URL: API, NEXT_DIST_DIR: ".next-e2e" },
     },

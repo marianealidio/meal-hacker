@@ -15,14 +15,17 @@ test("demo kitchen: add food, plan a recipe, shop for it, log out", async ({ pag
   await page.goto("/recipes");
   await page.locator('a[href^="/recipes/"]').first().click();
   await expect(page).toHaveURL(/\/recipes\/\d+/);
+  const title = (await page.getByRole("heading", { level: 1 }).innerText()).trim();
+  expect(title).not.toBe("");
   await page.getByRole("button", { name: "Add to plan" }).click();
   await page.getByRole("dialog").getByRole("button", { name: "Add to plan" }).click();
-  await expect(page.getByText(/^Added to /)).toBeVisible();
+  await expect(page.getByText(/^Added to /).first()).toBeVisible();
 
   // Planner: the meal sits on today's card.
   await page.goto("/planner");
-  const today = page.locator("section").filter({ hasText: "Today" }).filter({ has: page.locator("li") }).first();
-  await expect(today.locator("li").first()).toBeVisible();
+  const today = page.getByRole("region").filter({ has: page.getByText("Today", { exact: true }) });
+  await expect(today).toHaveCount(1);
+  await expect(today.getByRole("link", { name: title })).toBeVisible();
 
   // Shopping: tick a planned item and find it in the basket.
   await page.goto("/shopping");

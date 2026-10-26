@@ -150,7 +150,7 @@ export default function ShoppingPage() {
       {isError && !data ? (
         <ErrorCard error={error} onRetry={() => refetch()} />
       ) : isPending ? (
-        <div className="grid gap-4 lg:grid-cols-2" aria-busy="true">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2" aria-busy="true">
           {[0, 1].map((i) => (
             <Skeleton key={i} className="h-44" />
           ))}
@@ -163,7 +163,7 @@ export default function ShoppingPage() {
           action={<ButtonLink href="/recipes">Browse recipes</ButtonLink>}
         />
       ) : (
-        <div className="grid items-start gap-4 lg:grid-cols-2">
+        <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
           {groups.map((g, n) => (
             <ShoppingGroup key={g.title} id={`aisle-${n}`} title={g.title} items={g.items} {...handlers} />
           ))}

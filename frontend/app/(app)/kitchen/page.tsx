@@ -85,7 +85,7 @@ export default function KitchenPage() {
             </div>
             <TabsContent value={tab}>
               {isPending ? (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3" aria-busy="true">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" aria-busy="true">
                   {[0, 1, 2].map((i) => (
                     <Skeleton key={i} className="h-36" />
                   ))}
@@ -98,7 +98,7 @@ export default function KitchenPage() {
                   action={<Button onClick={() => focusAdd(tab)}>Add something</Button>}
                 />
               ) : (
-                <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {visible.map((item) => (
                     <InventoryCard key={item.id} item={item} />
                   ))}

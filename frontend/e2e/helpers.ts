@@ -25,3 +25,12 @@ export async function resetDemoKitchen(page: Page) {
     for (const item of inventory) if (/lemon/i.test(item.name)) await call("DELETE", `/api/inventory/${item.id}/`);
   });
 }
+
+/** The page must never be wider than the viewport (the 375px mobile project is the one that catches blow-outs). */
+export async function expectNoHorizontalScroll(page: Page, where: string) {
+  const { scrollWidth, clientWidth } = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+  }));
+  expect(scrollWidth, `${where} scrolls horizontally`).toBeLessThanOrEqual(clientWidth);
+}

@@ -17,9 +17,9 @@ export default function DashboardPage() {
         title="Dashboard"
         actions={<ButtonLink href="/recipes" variant="secondary">Browse recipes</ButtonLink>}
       />
-      <div className="grid gap-5 lg:grid-cols-3">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-5 lg:grid-cols-[repeat(3,minmax(0,1fr))]">
         <TonightsPick className="lg:col-span-2" />
-        <ExpiringList />
+        <ExpiringList className="lg:self-start" />
         <SuggestionsRow className="lg:col-span-3" />
         <WeekPeek className="lg:col-span-2" />
         <div className="flex flex-col gap-5">

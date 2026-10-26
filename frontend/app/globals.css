@@ -71,3 +71,31 @@
   }
   [data-reveal] { opacity: 1 !important; transform: none !important; }
 }
+
+@media print {
+  [data-print="hide"] { display: none !important; }
+  [data-print="flush"] { padding: 0 !important; margin: 0 !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  a[href="#main"] { display: none !important; }
+
+  [data-shopping] * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
+  [data-shopping] h1 { font-size: 22pt; margin-bottom: 4pt; }
+  [data-shopping] .font-script { display: none; }
+  [data-shopping] .shop-group {
+    break-inside: avoid;
+    border: 1px solid #000;
+    border-radius: 0;
+    margin-bottom: 12pt;
+    padding: 8pt 10pt;
+  }
+  [data-shopping] .shop-count { display: none; }
+  [data-shopping] ul { border: 0; }
+  [data-shopping] li { break-inside: avoid; border-color: #999 !important; }
+  [data-shopping] .grid { display: block !important; }
+  /* Native checkbox art is replaced by a plain character so it prints without background graphics. */
+  [data-shopping] .shop-box { border: 0 !important; width: auto; height: auto; }
+  [data-shopping] .shop-tick { display: none; }
+  [data-shopping] .shop-box::before { content: "\2610"; font-size: 16pt; line-height: 1; }
+  [data-shopping] .shop-box[data-checked="true"]::before { content: "\2611"; }
+  [data-shopping] .line-through { text-decoration: line-through; }
+}

@@ -92,7 +92,7 @@ export function Toaster({ children }: { children?: ReactNode }) {
             </RadixToast.Close>
           </RadixToast.Root>
         ))}
-        <RadixToast.Viewport className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] mx-auto flex w-full max-w-sm flex-col gap-2 p-4 outline-none sm:inset-x-auto sm:right-0 sm:mx-0 sm:p-6" />
+        <RadixToast.Viewport data-print="hide" className="pointer-events-none fixed inset-x-0 bottom-0 z-[60] mx-auto flex w-full max-w-sm flex-col gap-2 p-4 outline-none sm:inset-x-auto sm:right-0 sm:mx-0 sm:p-6" />
       </RadixToast.Provider>
     </ToastContext.Provider>
   );

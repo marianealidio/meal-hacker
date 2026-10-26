@@ -16,9 +16,9 @@ export function AppShell({ me, children }: { me: Me; children: ReactNode }) {
         Skip to content
       </a>
       <Sidebar me={me} />
-      <div className="lg:pl-[248px]">
+      <div data-print="flush" className="lg:pl-[248px]">
         <AppHeader me={me} />
-        <main id="main" tabIndex={-1} className="px-4 pb-28 focus:outline-none sm:px-6 lg:px-10 lg:pb-12">
+        <main id="main" data-print="flush" tabIndex={-1} className="px-4 pb-28 focus:outline-none sm:px-6 lg:px-10 lg:pb-12">
           {children}
         </main>
       </div>

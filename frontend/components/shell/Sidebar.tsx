@@ -22,7 +22,7 @@ export function Sidebar({ me, stat = null }: SidebarProps) {
   const name = me.display_name || me.username;
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 hidden w-[248px] flex-col gap-6 overflow-y-auto bg-sage-deep p-5 text-cream lg:flex">
+    <aside data-print="hide" className="fixed inset-y-0 left-0 z-20 hidden w-[248px] flex-col gap-6 overflow-y-auto bg-sage-deep p-5 text-cream lg:flex">
       <Link href="/dashboard" className="w-fit rounded-pill px-1 py-1 no-underline focus-visible:outline-butter">
         <Logo tone="light" />
       </Link>

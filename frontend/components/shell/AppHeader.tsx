@@ -20,7 +20,7 @@ export function AppHeader({ me, onAssistant = () => {} }: { me: Me; onAssistant?
   useEffect(() => setText(greeting(new Date(), name)), [name]);
 
   return (
-    <header className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-10 lg:py-6">
+    <header data-print="hide" className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-10 lg:py-6">
       <div className="min-w-0">
         <Link href="/dashboard" className="mb-2 inline-flex rounded-pill no-underline lg:hidden">
           <Logo />

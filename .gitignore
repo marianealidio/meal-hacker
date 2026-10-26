@@ -14,3 +14,4 @@ staticfiles/
 coverage/
 playwright-report/
 test-results/
+.superpowers/

@@ -136,6 +136,17 @@ class DemoTests(AuthTestCase):
         self.assertTrue(r.json()["is_demo"])
         self.assertEqual(c.get("/api/auth/me/").json()["username"], DEMO_USERNAME)
 
+    def test_demo_login_keeps_a_real_users_session(self):
+        User.objects.create_user("realuser", password="Str0ngPass!23")
+        c = csrf_client()
+        c.post("/api/auth/login/", {"username": "realuser", "password": "Str0ngPass!23"}, format="json")
+        refresh_csrf(c)
+        r = c.post("/api/auth/demo/")
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.json()["username"], "realuser")
+        self.assertFalse(r.json()["is_demo"])
+        self.assertEqual(c.get("/api/auth/me/").json()["username"], "realuser")
+
     def test_demo_user_cannot_change_password(self):                    # Review Focus 5
         c = csrf_client()
         c.post("/api/auth/demo/")

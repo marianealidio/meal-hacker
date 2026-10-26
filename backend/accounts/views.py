@@ -69,6 +69,9 @@ def logout_view(request):
 @throttle_classes([AuthRateThrottle])
 def demo_login(request):
     enforce_csrf(request)
+    if request.user.is_authenticated and not get_profile(request.user).is_demo:
+        # Never swap a real user's session for the shared demo account.
+        return Response(MeSerializer(request.user).data)
     user = ensure_demo_user()
     refresh_demo_if_stale(user)
     login(request, user, backend=BACKEND)

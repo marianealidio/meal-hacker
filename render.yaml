@@ -1,0 +1,49 @@
+databases:
+  - name: meal-hacker-db
+    plan: free
+services:
+  - type: web
+    name: meal-hacker-api
+    runtime: python
+    plan: free
+    rootDir: backend
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
+    preDeployCommand: python manage.py migrate && python manage.py seed_demo
+    startCommand: gunicorn meal_hacker.wsgi:application --bind 0.0.0.0:$PORT
+    healthCheckPath: /api/health/
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.9.21
+      - key: DJANGO_SETTINGS_MODULE
+        value: meal_hacker.settings.prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: meal-hacker-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SPOONACULAR_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ALLOWED_HOSTS
+        sync: false
+      - key: CSRF_TRUSTED_ORIGINS
+        sync: false
+  - type: cron
+    name: meal-hacker-demo-reset
+    runtime: python
+    plan: free
+    rootDir: backend
+    schedule: "17 3 * * *"
+    buildCommand: pip install -r requirements.txt
+    startCommand: python manage.py seed_demo --reset
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: meal_hacker.settings.prod
+      - key: DATABASE_URL
+        fromDatabase:
+          name: meal-hacker-db
+          property: connectionString
+      - key: SECRET_KEY
+        sync: false

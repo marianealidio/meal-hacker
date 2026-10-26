@@ -20,7 +20,6 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "accounts",
-    "core",
     "kitchen",
     "recipes",
     "planner",
@@ -44,7 +43,7 @@ ROOT_URLCONF = "meal_hacker.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / "templates"],
+        "DIRS": [],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -86,8 +85,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 
-LOGIN_URL = "/login/"
-LOGIN_REDIRECT_URL = "/"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["rest_framework.authentication.SessionAuthentication"],

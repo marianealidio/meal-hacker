@@ -8,155 +8,26 @@ Meal Hacker is a Django web application that helps reduce food waste and simplif
 
 ---
 
-## Before you start
+## Run it locally
 
-Make sure you have the following installed:
+Backend (Python 3.9+):
 
-- **Python 3.8 or higher** — [python.org/downloads](https://www.python.org/downloads/)
-- **Git** — [git-scm.com](https://git-scm.com/)
-
-To check Python is installed, open a terminal and run:
-```
-python --version
-```
-If that does not work, try `python3 --version`.
-
----
-
-## Important — `.env` file
-
-For security reasons, the real `.env` file is not included in the public GitHub repository. The required `.env` values will be uploaded separately on Blackboard.
-
-The project needs a `.env` file.
-**Please create a `.env` file and paste the API keys uploaded on Blackboard into it before running the project**,
-otherwise the app will not start.
-
-1. Open the extracted meal-hacker-main zip in any text editor (Notepad, VS Code, TextEdit)
-
-2. Create file and name it .env
-   
-3. Paste the four lines provided on Blackboard, then save.
-
-
-> The `.env` file should be in the same folder as `manage.py`.
-
-
-> meal-hacker-main/
-├── core/
-├── meal_hacker/
-├── static/
-├── templates/
-├── manage.py
-├── requirements.txt
-├── README.md
-└── .env
-
----
-## Setup — Mac
-
-**1. Download zip from github using the green button**
-Download zip 
-
-Open **Terminal** and run these commands one at a time:
-
-Navigate to meal-hacker-main
-
-Ex. It is in Downloads :
-```
-cd ~/Downloads/meal-hacker-main
-```
-
-**2. Create a virtual environment**
-```
-python3 -m venv venv
-```
-
-**3. Activate the virtual environment**
-```
-source venv/bin/activate
-```
-You will see `(venv)` at the start of the terminal line — keep this active for all remaining steps.
-
-**4. Install requirements**
-```
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-**5. Paste the API keys into the `.env` file**
-
-Open the `.env` file and paste the four lines provided on Blackboard. Save the file.
-
-**6. Set up the database**
-```
+```bash
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp ../.env.example ../.env   # add your own keys, or leave them blank for offline demo mode
 python manage.py migrate
-```
-
-**7. Run the server**
-```
+python manage.py seed_demo
 python manage.py runserver
 ```
 
-**8. Open the website**
-```
-http://127.0.0.1:8000/
-```
+With no `SPOONACULAR_API_KEY` the app serves built-in sample recipes; with no `GROQ_API_KEY` the assistant gives a canned reply.
+
+Run the tests: `python manage.py test`
+API schema: http://localhost:8000/api/schema/
 
 ---
-## Setup — Windows
-
-**1. Download zip from github using the green button**
-Download zip 
-
-Open **Terminal** and run these commands one at a time:
-
-Navigate to meal-hacker-main
-
-Ex. It is in Downloads
-```
-cd %USERPROFILE%\Downloads\meal-hacker-main
-```
-
-**2. Create a virtual environment**
-```
-python -m venv venv
-```
-
-**3. Activate the virtual environment**
-
-```
-venv\Scripts\activate
-```
-You will see `(venv)` at the start of the terminal line — keep this active for all remaining steps.
-
-**4. Install requirements**
-```
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-```
-
-**5. Paste the API keys into the `.env` file**
-
-Open the `.env` file and paste the four lines provided on Blackboard. Save the file.
-
-
-**6. Set up the database**
-```
-python manage.py migrate
-```
-
-**7. Run the server**
-```
-python manage.py runserver
-```
-
-**8. Open the website**
-```
-http://127.0.0.1:8000/
-```
-
----
-
 
 ## API notes
 
@@ -171,9 +42,6 @@ If the Spoonacular daily limit is reached, recipe pages will show a fallback mes
 
 ## Troubleshooting
 
-**App crashes on `migrate` with `SECRET_KEY not found`**
-The `.env` file has not been filled in yet. Open it and paste the keys provided on Blackboard.
-
 **`python` command not found on Mac**
 Use `python3` instead of `python` for all commands.
 
@@ -181,7 +49,6 @@ Use `python3` instead of `python` for all commands.
 ```
 python manage.py runserver 8080
 ```
-Then open `http://127.0.0.1:8080/`
 
 ---
 ## Using the website

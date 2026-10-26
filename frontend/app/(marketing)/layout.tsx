@@ -16,7 +16,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
       <main id="main" tabIndex={-1} className="focus:outline-none">
         {children}
       </main>
-      <SiteFooter />
+      <SiteFooter waveFrom="fill-sage-deep" />
     </>
   );
 }

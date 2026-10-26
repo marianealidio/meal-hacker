@@ -54,14 +54,14 @@ export function SiteFooter({ waveFrom = "fill-cream" }: SiteFooterProps) {
 
             <nav aria-label="Footer" className="grid grid-cols-2 gap-10">
               <Column title="Product">
-                <li><a href="/#features" className={linkClass}>Features</a></li>
-                <li><a href="/#how-it-works" className={linkClass}>How it works</a></li>
+                <li><Link href="/#features" className={linkClass}>Features</Link></li>
+                <li><Link href="/#how-it-works" className={linkClass}>How it works</Link></li>
                 <li><Link href="/login" className={linkClass}>Log in</Link></li>
                 <li><Link href="/signup" className={linkClass}>Sign up</Link></li>
               </Column>
 
               <Column title="Project">
-                <li><a href="/#about" className={linkClass}>About</a></li>
+                <li><Link href="/#about" className={linkClass}>About</Link></li>
                 <li>
                   <a href={GITHUB_URL} target="_blank" rel="noopener noreferrer" className={cn(linkClass, "group")}>
                     GitHub

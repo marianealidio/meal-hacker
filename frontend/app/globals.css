@@ -48,6 +48,9 @@
 @keyframes mh-pop-in { from { opacity: 0; scale: 0.96; } }
 @keyframes mh-slide-left { from { translate: 100% 0; } }
 @keyframes mh-slide-up { from { opacity: 0; translate: 0 24px; } }
+@keyframes mh-float { 0%, 100% { translate: 0 6px; } 50% { translate: 0 -6px; } }
+@keyframes mh-drift { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: 4px -10px; rotate: 6deg; } }
+@keyframes mh-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 
 @layer base {
   html { background: var(--color-cream); color: var(--color-ink); }
@@ -62,6 +65,7 @@
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }

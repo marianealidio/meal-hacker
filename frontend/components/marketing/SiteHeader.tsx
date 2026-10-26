@@ -49,7 +49,7 @@ export function SiteHeader() {
           <ul className="flex items-center gap-1">
             {NAV_LINKS.map((link) => (
               <li key={link.href}>
-                <a
+                <Link
                   href={link.href}
                   className={cn(
                     "relative inline-flex min-h-11 items-center rounded-pill px-3 text-sm font-medium text-sage-deep no-underline",
@@ -60,7 +60,7 @@ export function SiteHeader() {
                   )}
                 >
                   {link.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>
@@ -85,7 +85,7 @@ export function SiteHeader() {
               <ol className="-mx-2 border-t border-line">
                 {NAV_LINKS.map((link, i) => (
                   <li key={link.href} className="border-b border-line">
-                    <a
+                    <Link
                       href={link.href}
                       onClick={() => setMenuOpen(false)}
                       className="group flex min-h-14 items-baseline gap-4 rounded-lg px-2 py-3 no-underline transition-colors hover:bg-paper"
@@ -96,7 +96,7 @@ export function SiteHeader() {
                       <span className="font-display text-display-md text-sage-deep transition-transform duration-200 ease-out group-hover:translate-x-1">
                         {link.label}
                       </span>
-                    </a>
+                    </Link>
                   </li>
                 ))}
               </ol>

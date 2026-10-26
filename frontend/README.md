@@ -1,36 +1,36 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Meal Hacker frontend
 
-## Getting Started
+Next.js (App Router) app for Meal Hacker. It talks to the Django API in `../backend`.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. Copy `.env.example` to `.env.local`. `BACKEND_URL` is the Django origin (`http://127.0.0.1:8000` locally, the Render URL on Vercel). Next rewrites `/api`, `/admin` and `/static` to it, so the browser only ever talks to the Next origin.
+2. Start Django on port 8000:
+   ```bash
+   cd ../backend && source .venv/bin/activate && python manage.py runserver 8000
+   ```
+3. Install and start the frontend:
+   ```bash
+   npm install
+   npm run dev
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Commands
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Command | What it does |
+| --- | --- |
+| `npm test` | Vitest unit and component tests |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm run build` | Production build |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Layout
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- `app/(marketing)/` public landing pages
+- `app/(auth)/` login and signup; signed-in non-demo users are redirected to `/dashboard`
+- `app/(app)/` signed-in pages inside the app shell; signed-out visitors are redirected to `/login?next=...`
+- `app/styleguide/` design token and component reference
+- `components/ui/` primitives (Button, Menu, Dialog, Toaster, ...), `components/shell/` sidebar, header and tabs, `components/auth/`, `components/marketing/`, `components/brand/`
+- `lib/` API client (`api.ts`), React Query hooks (`queries.ts`), server session lookup (`session.ts`), `backend.ts` (`BACKEND_URL`)
+- `middleware.ts` guards the app routes and forwards the request path as `x-pathname`
+- `test/` Vitest suites

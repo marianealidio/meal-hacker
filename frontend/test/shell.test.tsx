@@ -3,13 +3,14 @@ import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 let pathname = "/recipes/716429";
-vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }), usePathname: () => pathname }));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }), usePathname: () => pathname }));
 
+import { Toaster } from "@/components/ui/Toaster";
 import { AppShell } from "@/components/shell/AppShell";
 import type { Me } from "@/lib/types";
 
 const me: Me = { id: 1, username: "demo", display_name: "Guest chef", diet: "", intolerances: [], onboarded: true, is_demo: true };
-const wrap = (ui: React.ReactNode) => render(<QueryClientProvider client={new QueryClient()}>{ui}</QueryClientProvider>);
+const wrap = (ui: React.ReactNode) => render(<QueryClientProvider client={new QueryClient()}><Toaster>{ui}</Toaster></QueryClientProvider>);
 
 describe("AppShell", () => {
   it("marks the matching section as current", () => {

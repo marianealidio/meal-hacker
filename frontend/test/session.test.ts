@@ -22,4 +22,11 @@ describe("getSession", () => {
     await expect(getSession()).resolves.toBeNull();
     expect(f.mock.calls[0][0]).toBe("https://api.example.com/api/auth/me/");
   });
+
+  it("passes an abort signal and returns null when the lookup times out", async () => {
+    const f = vi.spyOn(globalThis, "fetch").mockRejectedValue(new DOMException("The operation timed out.", "AbortError"));
+    const { getSession } = await import("@/lib/session");
+    await expect(getSession()).resolves.toBeNull();
+    expect((f.mock.calls[0][1] as RequestInit).signal).toBeInstanceOf(AbortSignal);
+  });
 });

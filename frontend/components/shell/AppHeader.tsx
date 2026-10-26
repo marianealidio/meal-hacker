@@ -1,15 +1,20 @@
 "use client";
 
-import { MessageCircle } from "lucide-react";
+import { LogOut, MessageCircle, User } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/brand/Logo";
+import { Menu, MenuContent, MenuItem, MenuTrigger } from "@/components/ui/Menu";
 import { greeting } from "@/lib/greeting";
 import { initials } from "@/lib/nav";
+import { useLogout } from "@/lib/queries";
 import type { Me } from "@/lib/types";
 
 export function AppHeader({ me, onAssistant = () => {} }: { me: Me; onAssistant?: () => void }) {
   const name = me.display_name || me.username;
+  const router = useRouter();
+  const logout = useLogout();
   // Server and client clocks differ; render the greeting after mount to avoid a hydration mismatch.
   const [text, setText] = useState(() => greeting(new Date(), name));
   useEffect(() => setText(greeting(new Date(), name)), [name]);
@@ -41,10 +46,40 @@ export function AppHeader({ me, onAssistant = () => {} }: { me: Me; onAssistant?
         <Link
           href="/profile"
           aria-label="Profile"
-          className="grid size-11 place-items-center rounded-full bg-blush font-display text-base font-medium text-sage-ink no-underline"
+          className="hidden size-11 place-items-center rounded-full bg-blush font-display text-base font-medium text-sage-ink no-underline lg:grid"
         >
           {initials(name)}
         </Link>
+        <Menu>
+          <MenuTrigger
+            aria-label="Account menu"
+            className="grid size-11 place-items-center rounded-full bg-blush font-display text-base font-medium text-sage-ink lg:hidden"
+          >
+            {initials(name)}
+          </MenuTrigger>
+          <MenuContent>
+            <MenuItem asChild>
+              <Link href="/profile" className="no-underline">
+                <User aria-hidden="true" />
+                Profile
+              </Link>
+            </MenuItem>
+            <MenuItem
+              disabled={logout.isPending}
+              onSelect={() =>
+                logout.mutate(undefined, {
+                  onSuccess: () => {
+                    router.replace("/");
+                    router.refresh();
+                  },
+                })
+              }
+            >
+              <LogOut aria-hidden="true" />
+              Log out
+            </MenuItem>
+          </MenuContent>
+        </Menu>
       </div>
     </header>
   );

@@ -9,7 +9,9 @@ import { getSession } from "@/lib/session";
 const PHOTO = "https://images.unsplash.com/photo-1626200419537-f07108a01aac?auto=format&fit=crop&w=900&q=80";
 
 export default async function AuthLayout({ children }: { children: React.ReactNode }) {
-  if (await getSession()) redirect("/dashboard");
+  const me = await getSession();
+  // Demo sessions may still view login/signup so a visitor can switch to a real account.
+  if (me && !me.is_demo) redirect("/dashboard");
 
   return (
     <div className="min-h-dvh md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)]">

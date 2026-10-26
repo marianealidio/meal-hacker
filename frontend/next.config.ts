@@ -8,7 +8,8 @@ const config: NextConfig = {
     return [
       { source: "/api/:path*/", destination: `${BACKEND_URL}/api/:path*/` },
       { source: "/api/:path*", destination: `${BACKEND_URL}/api/:path*/` },
-      { source: "/admin/:path*", destination: `${BACKEND_URL}/admin/:path*` },
+      { source: "/admin/:path*/", destination: `${BACKEND_URL}/admin/:path*/` },
+      { source: "/admin/:path*", destination: `${BACKEND_URL}/admin/:path*/` },
       { source: "/static/:path*", destination: `${BACKEND_URL}/static/:path*` },
     ];
   },

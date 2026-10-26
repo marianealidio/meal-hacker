@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/components/ui/Toaster";
 import { api, type SearchParams } from "./api";
 import type { Category } from "./types";
 
@@ -55,8 +56,10 @@ export function useDemoLogin(options: { onSuccess?: () => void } = {}) {
 
 export function useLogout() {
   const qc = useQueryClient();
+  const { toast } = useToast();
   return useMutation({
     mutationFn: () => api.logout(),
+    onError: () => toast({ title: "Couldn't log out. Try again." }),
     onSuccess: () => {
       qc.clear();
       qc.setQueryData(queryKeys.me, null);

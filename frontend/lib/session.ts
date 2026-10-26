@@ -9,6 +9,7 @@ export async function getSession(): Promise<Me | null> {
     const res = await fetch(`${BACKEND_URL}/api/auth/me/`, {
       headers: { cookie, Accept: "application/json" },
       cache: "no-store",
+      signal: AbortSignal.timeout(4000),
     });
     if (res.status !== 200) return null;
     return (await res.json()) as Me;

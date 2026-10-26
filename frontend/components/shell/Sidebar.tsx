@@ -51,7 +51,7 @@ export function Sidebar({ me, stat = null }: SidebarProps) {
           variant="ghost"
           size="sm"
           pending={logout.isPending}
-          onClick={() => logout.mutate(undefined, { onSuccess: () => router.push("/") })}
+          onClick={() => logout.mutate(undefined, { onSuccess: () => { router.replace("/"); router.refresh(); } })}
           className="px-3 text-cream hover:bg-white/10 focus-visible:outline-butter"
         >
           <LogOut className="size-4" aria-hidden="true" />

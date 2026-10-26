@@ -39,12 +39,20 @@ describe("apiFetch", () => {
 
   it("re-reads the CSRF cookie on every request (Django rotates it on login)", async () => {
     document.cookie = "csrftoken=first; path=/";
-    const f = vi.spyOn(globalThis, "fetch").mockResolvedValue(json({}, 200));
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(async () => json({}, 200));
     await apiFetch("/api/auth/login/", { method: "POST", body: {} });
     document.cookie = "csrftoken=second; path=/";
     await apiFetch("/api/auth/logout/", { method: "POST" });
     const tokens = f.mock.calls.map((c) => ((c[1] as RequestInit).headers as Record<string, string>)["X-CSRFToken"]);
     expect(tokens).toEqual(["first", "second"]);
+  });
+
+  it("throws a network ApiError when a 2xx JSON body does not parse", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response("{oops", { status: 200, headers: { "Content-Type": "application/json" } }));
+    const err = await apiFetch("/api/stats/").catch((e) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect(err.code).toBe("network");
   });
 
   it("parses the error envelope", async () => {
@@ -80,7 +88,7 @@ describe("apiFetch", () => {
   });
 
   it("endpoint helpers use trailing-slash paths", async () => {
-    const f = vi.spyOn(globalThis, "fetch").mockResolvedValue(json({}));
+    const f = vi.spyOn(globalThis, "fetch").mockImplementation(async () => json({}));
     document.cookie = "csrftoken=t; path=/";
     await api.week("2026-10-26");
     await api.recipe(716429);

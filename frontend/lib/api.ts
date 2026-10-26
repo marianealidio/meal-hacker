@@ -40,6 +40,10 @@ async function readBody(res: Response): Promise<Body> {
   return isJson ? await res.json().catch(() => null) : null;
 }
 
+function isJsonResponse(res: Response): boolean {
+  return (res.headers.get("Content-Type") ?? "").includes("application/json");
+}
+
 function isCsrfFailure(res: Response, body: Body): boolean {
   return res.status === 403 && typeof body?.error?.message === "string" && body.error.message.startsWith("CSRF Failed");
 }
@@ -90,6 +94,7 @@ export async function apiFetch<R>(
     }
     throw new ApiError(res.status, "network", NETWORK_MESSAGE);
   }
+  if (body === null && isJsonResponse(res)) throw new ApiError(res.status, "network", NETWORK_MESSAGE);
   return { data: body as unknown as R, stale };
 }
 
@@ -136,7 +141,7 @@ export const api = {
   updateInventory: (id: number, patch: Partial<InventoryInput>) =>
     send<T.InventoryItem>("PATCH", `/api/inventory/${id}/`, patch),
   deleteInventory: (id: number) => send<void>("DELETE", `/api/inventory/${id}/`),
-  useInventory: (id: number) => send<void>("POST", `/api/inventory/${id}/use/`),
+  useInventory: (id: number) => send<T.InventoryItem>("POST", `/api/inventory/${id}/use/`),
   note: () => get<T.Note>("/api/note/"),
   saveNote: (note: string) => send<T.Note>("PUT", "/api/note/", { note }),
 

@@ -46,12 +46,14 @@ def plans(request):
     v = s.validated_data
     try:
         recipe, _ = recipe_services.recipe_detail(request.user, v["recipe_id"])
+    except spoonacular.RecipeNotFound:
+        return api_error("not_found", "We couldn't find that recipe.", 404)
     except spoonacular.SpoonacularUnavailable:
         return api_error("recipes_unavailable", "Recipes can't load right now. Try again in a minute.", 503)
     with transaction.atomic():
         plan = MealPlan.objects.create(
             user=request.user, recipe_id=v["recipe_id"], recipe_title=recipe["title"][:200],
-            recipe_image=(recipe["image"] or "")[:200], description=recipe["description"][:300],
+            recipe_image=recipe["image"] or "", description=recipe["description"][:300],
             planned_date=v["planned_date"], slot=v["slot"])
         added = 0
         if v["add_missing"]:

@@ -12,6 +12,7 @@ from .normalise import summary_from_api
 from .serializers import FavouriteSerializer
 
 UNAVAILABLE = ("recipes_unavailable", "Recipes can't load right now. Try again in a minute.", 503)
+NOT_FOUND = ("not_found", "We couldn't find that recipe.", 404)
 
 
 def _respond(data, stale: bool) -> Response:
@@ -48,6 +49,8 @@ def detail(request, recipe_id):
         raise Http404
     try:
         data, stale = services.recipe_detail(request.user, recipe_id)
+    except spoonacular.RecipeNotFound:
+        return api_error(*NOT_FOUND)
     except spoonacular.SpoonacularUnavailable:
         return api_error(*UNAVAILABLE)
     return _respond(data, stale)
@@ -65,6 +68,8 @@ def favourites(request):
         return Response(FavouriteSerializer(existing).data, status=status.HTTP_200_OK)
     try:
         info = spoonacular.information(recipe_id).data
+    except spoonacular.RecipeNotFound:
+        return api_error(*NOT_FOUND)
     except spoonacular.SpoonacularUnavailable:
         return api_error(*UNAVAILABLE)
     summary = summary_from_api(info, set())

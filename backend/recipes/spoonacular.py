@@ -34,6 +34,10 @@ class SpoonacularUnavailable(Exception):
     pass
 
 
+class RecipeNotFound(Exception):
+    """Spoonacular (or the offline samples) has no recipe with that id. Not an outage."""
+
+
 @dataclass
 class Result:
     data: Any
@@ -58,6 +62,8 @@ def _fetch(endpoint: str, params: Dict[str, Any], ttl: timedelta) -> Result:
     try:
         resp = requests.get(f"{BASE_URL}{endpoint}",
                             params={**params, "apiKey": settings.SPOONACULAR_API_KEY}, timeout=TIMEOUT)
+        if resp.status_code == 404 and not entry:
+            raise RecipeNotFound(endpoint)
         resp.raise_for_status()
         payload = resp.json()
     except (requests.RequestException, ValueError) as exc:
@@ -123,5 +129,5 @@ def information(recipe_id: int) -> Result:
         for raw in _samples():
             if raw["id"] == recipe_id:
                 return Result(copy.deepcopy(raw))
-        raise SpoonacularUnavailable(f"No sample recipe {recipe_id}")
+        raise RecipeNotFound(f"No sample recipe {recipe_id}")
     return _fetch(f"/recipes/{recipe_id}/information", {"includeNutrition": False}, DETAIL_TTL)

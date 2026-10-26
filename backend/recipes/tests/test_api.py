@@ -112,10 +112,17 @@ class SearchAndDetailTests(TestCase):
         self.assertTrue(any(i["have"] for i in body["ingredients"]))
         self.assertFalse(body["is_favourite"])
 
-    def test_detail_unknown_is_503_envelope(self):                        # fix/recipe-link-guard
+    def test_detail_unknown_is_404_envelope(self):                        # M2
         r = self.c.get("/api/recipes/123456789/")
+        self.assertEqual(r.status_code, 404)
+        self.assertEqual(r.json()["error"]["code"], "not_found")
+
+    def test_detail_unavailable_is_503_envelope(self):                    # fix/recipe-link-guard
+        with mock.patch("recipes.services.spoonacular.information",
+                        side_effect=spoonacular.SpoonacularUnavailable("down")):
+            r = self.c.get("/api/recipes/716429/")
         self.assertEqual(r.status_code, 503)
-        self.assertIn("error", r.json())
+        self.assertEqual(r.json()["error"]["code"], "recipes_unavailable")
 
     def test_detail_zero_id_is_404(self):
         self.assertEqual(self.c.get("/api/recipes/0/").status_code, 404)
@@ -148,6 +155,26 @@ class FavouriteTests(TestCase):
     def test_invalid_recipe_id(self):
         r = self.c.post("/api/favourites/", {"recipe_id": -5}, format="json")
         self.assertEqual(r.status_code, 400)
+
+    def test_recipe_id_above_int_limit_is_400(self):                      # M1
+        r = self.c.post("/api/favourites/", {"recipe_id": 2147483648}, format="json")
+        self.assertEqual(r.status_code, 400)
+        self.assertIn("recipe_id", r.json()["error"]["fields"])
+
+    def test_unknown_recipe_is_404(self):                                 # M2
+        r = self.c.post("/api/favourites/", {"recipe_id": 999999999}, format="json")
+        self.assertEqual(r.status_code, 404)
+        self.assertEqual(r.json()["error"]["code"], "not_found")
+        self.assertFalse(FavouriteRecipe.objects.exists())
+
+    def test_long_image_url_is_kept_whole(self):                          # M1
+        image = "https://img.example.com/" + "b" * 300 + ".jpg"
+        info = spoonacular.information(716429).data
+        info["image"] = image
+        with mock.patch("recipes.views.spoonacular.information", return_value=spoonacular.Result(info)):
+            r = self.c.post("/api/favourites/", {"recipe_id": 716429}, format="json")
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(FavouriteRecipe.objects.get().image, image)
 
     def test_cannot_see_or_delete_others(self):
         FavouriteRecipe.objects.create(user=self.other, recipe_id=716429, title="t")

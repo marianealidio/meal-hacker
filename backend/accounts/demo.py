@@ -60,7 +60,7 @@ def seed_demo_data(user: User, reset: bool = False) -> None:
     def info(recipe_id):
         try:
             return summary_from_api(spoonacular.information(recipe_id).data, set())
-        except spoonacular.SpoonacularUnavailable:
+        except (spoonacular.SpoonacularUnavailable, spoonacular.RecipeNotFound):
             return {"title": "Planned meal", "image": "", "description": ""}
 
     infos = {rid: info(rid) for rid in {r for r, _, _ in PLANS} | set(FAVOURITES)}
@@ -93,7 +93,7 @@ def seed_demo_data(user: User, reset: bool = False) -> None:
             for recipe_id, offset, slot in PLANS:
                 s = infos[recipe_id]
                 MealPlan.objects.create(user=user, recipe_id=recipe_id, recipe_title=s["title"][:200],
-                                        recipe_image=s["image"][:200], description=s["description"][:300],
+                                        recipe_image=s["image"], description=s["description"][:300],
                                         planned_date=monday + timedelta(days=offset), slot=slot)
         if not ShoppingListItem.objects.filter(user=user).exists():
             for name, qty, aisle in SHOPPING:
@@ -103,5 +103,5 @@ def seed_demo_data(user: User, reset: bool = False) -> None:
             if not FavouriteRecipe.objects.filter(user=user, recipe_id=recipe_id).exists():
                 s = infos[recipe_id]
                 FavouriteRecipe.objects.create(user=user, recipe_id=recipe_id, title=s["title"][:200],
-                                               image=s["image"][:200], description=s["description"][:300])
+                                               image=s["image"], description=s["description"][:300])
         Note.objects.update_or_create(user=user, defaults={"note": "Use the spinach tonight.\nBatch-cook rice on Sunday."})

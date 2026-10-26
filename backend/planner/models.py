@@ -8,7 +8,7 @@ class MealPlan(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="meal_plans")
     recipe_id = models.PositiveIntegerField()
     recipe_title = models.CharField(max_length=200)
-    recipe_image = models.URLField(blank=True)
+    recipe_image = models.URLField(max_length=500, blank=True)
     description = models.CharField(max_length=300, blank=True)
     planned_date = models.DateField()
     slot = models.CharField(max_length=10, choices=SLOTS, default="dinner")

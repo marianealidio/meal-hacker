@@ -17,7 +17,7 @@ class FavouriteRecipe(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="favourites")
     recipe_id = models.PositiveIntegerField()
     title = models.CharField(max_length=200)
-    image = models.URLField(blank=True)
+    image = models.URLField(max_length=500, blank=True)
     description = models.CharField(max_length=300, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

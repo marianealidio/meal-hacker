@@ -1,4 +1,5 @@
 from datetime import date
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.test import TestCase, override_settings
@@ -70,10 +71,28 @@ class PlanTests(TestCase):
         r = self.c.post("/api/plans/", {"recipe_id": 2147483648, "planned_date": "2026-10-27"}, format="json")
         self.assertEqual(r.status_code, 400)
 
-    def test_unknown_recipe_is_503(self):
+    def test_unknown_recipe_is_404(self):                           # M2
         r = self.c.post("/api/plans/", {"recipe_id": 999999999, "planned_date": "2026-10-27"}, format="json")
-        self.assertEqual(r.status_code, 503)
+        self.assertEqual(r.status_code, 404)
+        self.assertEqual(r.json()["error"]["code"], "not_found")
         self.assertEqual(MealPlan.objects.count(), 0)
+
+    def test_unavailable_recipe_is_503(self):
+        from recipes import spoonacular
+        with mock.patch("recipes.services.spoonacular.information",
+                        side_effect=spoonacular.SpoonacularUnavailable("down")):
+            r = self.c.post("/api/plans/", {"recipe_id": 716429, "planned_date": "2026-10-27"}, format="json")
+        self.assertEqual(r.status_code, 503)
+
+    def test_long_image_url_is_kept_whole(self):                    # M1
+        from recipes import spoonacular
+        image = "https://img.example.com/" + "a" * 300 + ".jpg"
+        info = spoonacular.information(716429).data
+        info["image"] = image
+        with mock.patch("recipes.services.spoonacular.information", return_value=spoonacular.Result(info)):
+            r = self.c.post("/api/plans/", {"recipe_id": 716429, "planned_date": "2026-10-27"}, format="json")
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(MealPlan.objects.get().recipe_image, image)
 
     def test_week_lists_only_own_plans(self):
         MealPlan.objects.create(user=self.other, recipe_id=1, recipe_title="Theirs", planned_date=date(2026, 10, 27))

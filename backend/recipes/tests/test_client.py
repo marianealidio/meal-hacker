@@ -76,6 +76,20 @@ class LiveClientTests(TestCase):
             with self.assertRaises(spoonacular.SpoonacularUnavailable):
                 spoonacular.information(42)
 
+    def test_404_without_cache_raises_not_found(self):                  # M2
+        with mock.patch("recipes.spoonacular.requests.get", return_value=fake_response({}, status=404)):
+            with self.assertRaises(spoonacular.RecipeNotFound):
+                spoonacular.information(42)
+        self.assertFalse(issubclass(spoonacular.RecipeNotFound, spoonacular.SpoonacularUnavailable))
+
+    def test_404_with_stale_cache_serves_stale(self):
+        with mock.patch("recipes.spoonacular.requests.get", return_value=fake_response({"id": 42})):
+            spoonacular.information(42)
+        RecipeCache.objects.update(expires_at=timezone.now() - timedelta(seconds=1))
+        with mock.patch("recipes.spoonacular.requests.get", return_value=fake_response({}, status=404)):
+            r = spoonacular.information(42)
+        self.assertTrue(r.stale)
+
     def test_information_uses_detail_ttl(self):
         with mock.patch("recipes.spoonacular.requests.get",
                         return_value=fake_response({"id": 42, "title": "T"})):
@@ -123,5 +137,5 @@ class OfflineClientTests(TestCase):
     def test_offline_information_by_id_and_unknown(self):
         first = spoonacular.search({}).data[0]
         self.assertEqual(spoonacular.information(first["id"]).data["id"], first["id"])
-        with self.assertRaises(spoonacular.SpoonacularUnavailable):
+        with self.assertRaises(spoonacular.RecipeNotFound):
             spoonacular.information(999999999)

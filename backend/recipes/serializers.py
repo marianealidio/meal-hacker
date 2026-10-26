@@ -4,7 +4,7 @@ from .models import FavouriteRecipe
 
 
 class FavouriteSerializer(serializers.ModelSerializer):
-    recipe_id = serializers.IntegerField(min_value=1)
+    recipe_id = serializers.IntegerField(min_value=1, max_value=2147483647)
 
     class Meta:
         model = FavouriteRecipe

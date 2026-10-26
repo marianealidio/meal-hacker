@@ -24,6 +24,7 @@ INSTALLED_APPS = [
     "kitchen",
     "recipes",
     "planner",
+    "assistant",
 ]
 
 MIDDLEWARE = [
@@ -81,6 +82,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"] if (BASE_DIR / "static").exists() else []
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+CACHES = {"default": {"BACKEND": "django.core.cache.backends.locmem.LocMemCache"}}
 
 LOGIN_URL = "/login/"
 LOGIN_REDIRECT_URL = "/"

@@ -21,14 +21,16 @@ const OTHER = "Other";
 type Group = { title: string; items: ShoppingItem[] };
 
 function groupByAisle(items: ShoppingItem[]): Group[] {
-  const byAisle = new Map<string, ShoppingItem[]>();
+  const byAisle = new Map<string, Group>();
   for (const item of items) {
     const aisle = item.aisle.trim() || OTHER;
-    byAisle.set(aisle, [...(byAisle.get(aisle) ?? []), item]);
+    const key = aisle.toLowerCase();
+    const group = byAisle.get(key) ?? { title: aisle, items: [] };
+    group.items.push(item);
+    byAisle.set(key, group);
   }
-  return [...byAisle.entries()]
-    .sort(([a], [b]) => (a === OTHER ? 1 : b === OTHER ? -1 : a.localeCompare(b)))
-    .map(([title, list]) => ({ title, items: list }));
+  const isOther = (g: Group) => g.title.toLowerCase() === OTHER.toLowerCase();
+  return [...byAisle.values()].sort((a, b) => (isOther(a) ? 1 : isOther(b) ? -1 : a.title.localeCompare(b.title)));
 }
 
 /**
@@ -84,21 +86,24 @@ export default function ShoppingPage() {
 
   function toggle(item: ShoppingItem, checked: boolean) {
     focusRequest.current = { kind: "keep", id: item.id };
-    update.mutate(
-      { id: item.id, patch: { checked } },
-      {
-        onSuccess: () => {
-          if (checked) {
-            toast({ title: `${item.ingredient_name} ticked`, action: { label: "Move to kitchen", onClick: () => openMove(item) } });
-          }
-        },
-      },
-    );
+    // mutateAsync, because per-call mutate callbacks only run for the latest call. The hook toasts errors.
+    update
+      .mutateAsync({ id: item.id, patch: { checked } })
+      .then(() => {
+        if (checked) {
+          toast({ title: `${item.ingredient_name} ticked`, action: { label: "Move to kitchen", onClick: () => openMove(item) } });
+        }
+      })
+      .catch(() => {});
   }
 
   function destroy(item: ShoppingItem) {
     requestGone(item.id);
-    remove.mutate(item.id);
+    remove.mutate(item.id, {
+      onError: () => {
+        if (focusRequest.current?.kind === "gone" && focusRequest.current.id === item.id) focusRequest.current = null;
+      },
+    });
   }
 
   function clearTicked() {
@@ -159,8 +164,8 @@ export default function ShoppingPage() {
         />
       ) : (
         <div className="grid items-start gap-4 lg:grid-cols-2">
-          {groups.map((g) => (
-            <ShoppingGroup key={g.title} id={`aisle-${g.title.replace(/\W+/g, "-")}`} title={g.title} items={g.items} {...handlers} />
+          {groups.map((g, n) => (
+            <ShoppingGroup key={g.title} id={`aisle-${n}`} title={g.title} items={g.items} {...handlers} />
           ))}
           {anyChecked && <ShoppingGroup id="aisle-basket" title="In the basket" items={basket} {...handlers} />}
         </div>

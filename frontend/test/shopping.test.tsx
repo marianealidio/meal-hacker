@@ -14,7 +14,7 @@ const item = (id: number, name: string, aisle: string, checked = false, over: Pa
 });
 
 type Call = { url: string; method: string; body?: string };
-function mockFetch(items: ShoppingItem[], extra: Record<string, () => Response> = {}) {
+function mockFetch(items: ShoppingItem[], extra: Record<string, () => Response> = {}, gatePatch?: () => Promise<void>) {
   const calls: Call[] = [];
   let live = [...items];
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
@@ -31,6 +31,7 @@ function mockFetch(items: ShoppingItem[], extra: Record<string, () => Response> 
       return json(created, 201);
     }
     if (method === "PATCH") {
+      await gatePatch?.();
       const id = Number(url.split("/")[3]);
       const patch = JSON.parse(init!.body as string);
       live = live.map((i) => (i.id === id ? { ...i, ...patch } : i));
@@ -221,5 +222,38 @@ describe("Shopping list", () => {
     await user.click(screen.getByRole("button", { name: "Print" }));
     expect(print).toHaveBeenCalled();
     vi.unstubAllGlobals();
+  });
+
+  it("shows a ticked toast for each of two items ticked before either PATCH resolves", async () => {
+    const releases: (() => void)[] = [];
+    mockFetch(LIST, {}, () => new Promise<void>((r) => releases.push(r)));
+    const user = userEvent.setup();
+    wrap();
+    await user.click(await screen.findByRole("checkbox", { name: "Milk 1" }));
+    await user.click(screen.getByRole("checkbox", { name: "Apples 1" }));
+    await waitFor(() => expect(releases).toHaveLength(2));
+    releases.forEach((r) => r());
+    expect(await screen.findByText("Milk ticked")).toBeInTheDocument();
+    expect(await screen.findByText("Apples ticked")).toBeInTheDocument();
+  });
+
+  it("groups aisles case-insensitively and gives every group a unique id", async () => {
+    mockFetch([item(1, "Milk", "Dairy"), item(2, "Cheese", "dairy"), item(3, "A", "Fish & Meat"), item(4, "B", "Fish - Meat")]);
+    wrap();
+    await screen.findByText("Milk");
+    const headings = screen.getAllByRole("heading", { level: 2 });
+    expect(headings.map((h) => h.textContent)).toEqual(["Dairy", "Fish - Meat", "Fish & Meat"]);
+    const ids = headings.map((h) => h.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    expect(within(screen.getByRole("heading", { name: "Dairy" }).closest("section")!).getAllByRole("checkbox")).toHaveLength(2);
+  });
+
+  it("restores the row and toasts when a delete fails", async () => {
+    mockFetch(LIST, { "DELETE /api/shopping/1/": () => json({ error: { code: "x", message: "Couldn't delete.", fields: {} } }, 500) });
+    const user = userEvent.setup();
+    wrap();
+    await user.click(await screen.findByRole("button", { name: "Delete Milk" }));
+    expect(await screen.findByText("Couldn't delete.")).toBeInTheDocument();
+    expect(await screen.findByRole("checkbox", { name: "Milk 1" })).toBeInTheDocument();
   });
 });

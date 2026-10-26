@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { useToast } from "@/components/ui/Toaster";
 import { scaleAmount } from "@/lib/format";
-import { useAddShopping } from "@/lib/queries";
-import type { RecipeIngredient } from "@/lib/types";
+import { useQueryClient } from "@tanstack/react-query";
+import { api } from "@/lib/api";
+import { queryKeys, useAddShopping } from "@/lib/queries";
+import type { RecipeIngredient, ShoppingItem } from "@/lib/types";
 import { ServingsScaler } from "./ServingsScaler";
 
 function quantity(i: RecipeIngredient, base: number, servings: number): string {
@@ -22,6 +24,8 @@ function shoppingName(i: RecipeIngredient): string {
 export function IngredientList({ ingredients, baseServings }: { ingredients: RecipeIngredient[]; baseServings: number }) {
   const [servings, setServings] = useState(baseServings);
   const [busy, setBusy] = useState(false);
+  const [added, setAdded] = useState(false);
+  const qc = useQueryClient();
   const inFlight = useRef(false);
   const add = useAddShopping();
   const { toast } = useToast();
@@ -33,8 +37,16 @@ export function IngredientList({ ingredients, baseServings }: { ingredients: Rec
     if (inFlight.current) return;
     inFlight.current = true;
     setBusy(true);
+    let onList: ShoppingItem[] = [];
+    try {
+      onList = await qc.ensureQueryData({ queryKey: queryKeys.shopping, queryFn: api.shopping });
+    } catch {
+      /* can't tell what's on the list: add everything */
+    }
+    const have = new Set(onList.map((s) => s.ingredient_name.trim().toLowerCase()));
+    const toAdd = missing.filter((i) => !have.has(shoppingName(i).trim().toLowerCase()));
     const results = await Promise.allSettled(
-      missing.map((i) =>
+      toAdd.map((i) =>
         add.mutateAsync({ ingredient_name: shoppingName(i), quantity: quantity(i, baseServings, servings), aisle: i.aisle }),
       ),
     );
@@ -43,6 +55,7 @@ export function IngredientList({ ingredients, baseServings }: { ingredients: Rec
     const ok = results.filter((r) => r.status === "fulfilled").length;
     // Failures already raised an error toast from useAddShopping.
     if (ok > 0) toast({ title: `Added ${ok} ${ok === 1 ? "item" : "items"} to your list` });
+    if (results.every((r) => r.status === "fulfilled")) setAdded(true);
   }
 
   return (
@@ -84,8 +97,8 @@ export function IngredientList({ ingredients, baseServings }: { ingredients: Rec
         You have {have} of {ingredients.length}
       </p>
       {missing.length > 0 && (
-        <Button variant="primary" pending={busy} onClick={addMissing}>
-          Add {missing.length} missing to shopping list
+        <Button variant="primary" pending={busy} disabled={added} onClick={addMissing}>
+          {added ? "Added to your list" : `Add ${missing.length} missing to shopping list`}
         </Button>
       )}
     </Card>

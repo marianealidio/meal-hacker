@@ -91,7 +91,7 @@ function RecipeView({ recipe, stale }: { recipe: RecipeDetail; stale: boolean })
           )}
           <div className="flex flex-wrap gap-2">
             {time && <Chip icon={<Clock aria-hidden="true" />}>{time}</Chip>}
-            {recipe.servings && <Chip icon={<Users aria-hidden="true" />}>{recipe.servings} servings</Chip>}
+            {(recipe.servings ?? 0) > 0 && <Chip icon={<Users aria-hidden="true" />}>{recipe.servings} servings</Chip>}
             {recipe.diets.map((d) => <Chip key={`d-${d}`}>{d}</Chip>)}
             {recipe.cuisines.map((c) => <Chip key={`c-${c}`}>{c}</Chip>)}
           </div>
@@ -115,7 +115,7 @@ function RecipeView({ recipe, stale }: { recipe: RecipeDetail; stale: boolean })
 
       <div className="grid gap-8 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:items-start">
         <div className="lg:sticky lg:top-6">
-          <IngredientList ingredients={recipe.ingredients} baseServings={recipe.servings ?? 2} />
+          <IngredientList ingredients={recipe.ingredients} baseServings={recipe.servings || 2} />
         </div>
         <Steps steps={recipe.steps} sourceUrl={recipe.source_url} />
       </div>

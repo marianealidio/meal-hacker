@@ -29,13 +29,14 @@ const recipe: RecipeDetail = {
   steps: ["Boil the pasta.", "Make the sauce.", "Toss and serve."],
 };
 
-function mockFetch(detail: () => Response = () => json(recipe)) {
+function mockFetch(detail: () => Response = () => json(recipe), shopping: { ingredient_name: string }[] = []) {
   const calls: { url: string; method: string; body?: string }[] = [];
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const url = String(input);
     const method = init?.method ?? "GET";
     calls.push({ url, method, body: init?.body as string | undefined });
     if (method === "GET" && url.includes("/api/recipes/")) return detail();
+    if (method === "GET" && url.includes("/api/shopping/")) return json(shopping);
     if (method === "POST" && url.includes("/api/shopping/")) {
       await new Promise((r) => setTimeout(r, 50));
       return json({ id: 1 }, 201);
@@ -116,6 +117,36 @@ describe("recipe detail", () => {
       { ingredient_name: "lemon", quantity: "4", aisle: "Produce" },
       { ingredient_name: "a handful of parsley", quantity: "", aisle: "Produce" },
     ]);
+  });
+
+  it("disables the button after adding, and does not re-post", async () => {
+    const calls = mockFetch();
+    wrap();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Add 2 missing to shopping list" }));
+    const done = await screen.findByRole("button", { name: "Added to your list" });
+    expect(done).toBeDisabled();
+    await user.click(done);
+    expect(calls.filter((c) => c.method === "POST")).toHaveLength(2);
+  });
+
+  it("skips ingredients already on the shopping list, ignoring case", async () => {
+    const calls = mockFetch(() => json(recipe), [{ ingredient_name: "Lemon" }]);
+    wrap();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Add 2 missing to shopping list" }));
+    await screen.findByRole("button", { name: "Added to your list" });
+    const bodies = calls.filter((c) => c.method === "POST").map((c) => JSON.parse(c.body ?? "{}"));
+    expect(bodies).toEqual([{ ingredient_name: "a handful of parsley", quantity: "", aisle: "Produce" }]);
+  });
+
+  it("shows no servings chip when servings is zero", async () => {
+    mockFetch(() => json({ ...recipe, servings: 0 }));
+    wrap();
+    await screen.findByRole("heading", { level: 1, name: "Lemon Pasta" });
+    expect(screen.queryByText("0 servings")).not.toBeInTheDocument();
+    expect(screen.queryByText(/^0$/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Fewer servings" }).parentElement).toHaveTextContent("2 servings");
   });
 
   it("steps through cook mode with buttons and keys, holding a wake lock", async () => {

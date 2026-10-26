@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -69,8 +69,10 @@ describe("kitchen assistant", () => {
   it("shows the server message on 503", async () => {
     mockFetch(() => json({ error: { code: "assistant_unavailable", message: "The assistant can't answer right now. Try again soon.", fields: {} } }, 503));
     render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
-    await userEvent.type(await screen.findByLabelText("Message"), "Hello{Enter}");
+    const box = await screen.findByLabelText("Message");
+    await userEvent.type(box, "Hello{Enter}");
     expect(await screen.findByText("The assistant can't answer right now. Try again soon.")).toBeInTheDocument();
+    expect(box).toHaveValue("Hello");
   });
 
   it("keeps the thread across unmount and remount, and clears it on request", async () => {
@@ -97,7 +99,8 @@ describe("kitchen assistant", () => {
     render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
     await userEvent.type(await screen.findByLabelText("Message"), "latest{Enter}");
     await waitFor(() => expect(bodies).toHaveLength(1));
-    expect(bodies[0].messages).toHaveLength(20);
+    expect(bodies[0].messages).toHaveLength(19);
+    expect(bodies[0].messages[0].role).toBe("user");
     expect(bodies[0].messages.at(-1)).toEqual({ role: "user", content: "latest" });
   });
 
@@ -108,6 +111,107 @@ describe("kitchen assistant", () => {
     await userEvent.type(box, "a{Shift>}{Enter}{/Shift}b");
     expect(box).toHaveValue("a\nb");
     expect(bodies).toHaveLength(0);
+  });
+});
+
+describe("assistant concurrency and storage", () => {
+  const unavailable = () => json({ error: { code: "assistant_unavailable", message: "The assistant can't answer right now. Try again soon.", fields: {} } }, 503);
+
+  it("sends once when Enter fires twice before the first request settles", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    const bodies: unknown[] = [];
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      if (String(input) === "/api/assistant/chat/") {
+        bodies.push(init!.body);
+        await gate;
+        return json({ reply: "ok" });
+      }
+      return json({});
+    });
+    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    const box = await screen.findByLabelText("Message");
+    fireEvent.change(box, { target: { value: "hi" } });
+    act(() => {
+      fireEvent.keyDown(box, { key: "Enter" });
+      fireEvent.keyDown(box, { key: "Enter" });
+    });
+    release();
+    expect(await screen.findByText("ok")).toBeInTheDocument();
+    expect(bodies).toHaveLength(1);
+  });
+
+  it("does not overwrite text typed while waiting when the request fails", async () => {
+    let fail!: () => void;
+    const gate = new Promise<void>((r) => (fail = r));
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      if (String(input) === "/api/assistant/chat/") {
+        await gate;
+        return unavailable();
+      }
+      return json({});
+    });
+    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    const box = await screen.findByLabelText("Message");
+    await userEvent.type(box, "first{Enter}");
+    await userEvent.type(box, "second");
+    fail();
+    expect(await screen.findByText("The assistant can't answer right now. Try again soon.")).toBeInTheDocument();
+    expect(box).toHaveValue("second");
+  });
+
+  it("disables Clear chat while a request is pending", async () => {
+    let release!: () => void;
+    const gate = new Promise<void>((r) => (release = r));
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      if (String(input) === "/api/assistant/chat/") {
+        await gate;
+        return json({ reply: "done" });
+      }
+      return json({});
+    });
+    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    await userEvent.type(await screen.findByLabelText("Message"), "hi{Enter}");
+    expect(screen.getByRole("button", { name: "Clear chat" })).toBeDisabled();
+    release();
+    expect(await screen.findByText("done")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Clear chat" })).toBeEnabled();
+  });
+
+  it("falls back to an empty thread when stored data is corrupt", async () => {
+    sessionStorage.setItem("mh-assistant-thread", "{not json");
+    mockFetch(() => json({ reply: "ok" }));
+    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    expect(await screen.findByRole("button", { name: "What can I make with spinach?" })).toBeInTheDocument();
+  });
+
+  it("falls back to an empty thread when sessionStorage throws", async () => {
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new Error("blocked");
+    });
+    mockFetch(() => json({ reply: "Works anyway." }));
+    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    await userEvent.click(await screen.findByRole("button", { name: "Swap for buttermilk?" }));
+    expect(await screen.findByText("Works anyway.")).toBeInTheDocument();
+  });
+
+  it("keeps the live conversation list mounted when empty, without a nested status role", async () => {
+    mockFetch(() => json({ reply: "ok" }));
+    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    const list = await screen.findByRole("list", { name: "Conversation" });
+    expect(list).toHaveAttribute("aria-live", "polite");
+    expect(list).toBeEmptyDOMElement();
+  });
+
+  it("typing indicator has no nested status role", async () => {
+    vi.spyOn(globalThis, "fetch").mockImplementation(() => new Promise(() => {}));
+    render(wrap(<AssistantPanel open onOpenChange={() => {}} />));
+    await userEvent.type(await screen.findByLabelText("Message"), "hi{Enter}");
+    expect(await screen.findByText("Thinking")).toBeInTheDocument();
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
   });
 });
 

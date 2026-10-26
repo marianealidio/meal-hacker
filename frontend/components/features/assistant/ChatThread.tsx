@@ -36,7 +36,7 @@ function Typing() {
   return (
     <li className="flex items-start gap-2">
       <LogoMark className="mt-1 size-7" />
-      <p role="status" className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-paper px-4 py-4">
+      <p className="flex items-center gap-1 rounded-2xl rounded-bl-md bg-paper px-4 py-4">
         <span className="sr-only">Thinking</span>
         {[0, 1, 2].map((i) => (
           <span
@@ -58,7 +58,6 @@ export function ChatThread({ messages, pending, notice }: { messages: ChatMessag
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, pending, notice]);
 
-  if (messages.length === 0 && !pending && !notice) return null;
   return (
     <div ref={ref} className="max-h-[45dvh] overflow-y-auto pr-1">
       <ul aria-live="polite" aria-label="Conversation" className="flex flex-col gap-3">

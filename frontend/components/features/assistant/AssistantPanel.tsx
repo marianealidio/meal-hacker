@@ -1,7 +1,7 @@
 "use client";
 
 import { Send } from "lucide-react";
-import { useState, useSyncExternalStore, type KeyboardEvent } from "react";
+import { useRef, useState, useSyncExternalStore, type KeyboardEvent } from "react";
 import { ScriptNote } from "@/components/brand/ScriptNote";
 import { Button } from "@/components/ui/Button";
 import { Dialog, Sheet } from "@/components/ui/Dialog";
@@ -59,6 +59,8 @@ export function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenCh
   const [messages, setMessages] = useState<ChatMessage[]>(load);
   const [draft, setDraft] = useState("");
   const [notice, setNotice] = useState<string | null>(null);
+  const inFlight = useRef(false);
+  const generation = useRef(0);
 
   const commit = (next: ChatMessage[]) => {
     setMessages(next);
@@ -67,17 +69,28 @@ export function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenCh
 
   const send = (raw: string) => {
     const text = raw.trim();
-    if (!text || chat.isPending) return;
+    if (!text || inFlight.current) return;
+    inFlight.current = true;
+    const gen = generation.current;
     const next = [...messages, { role: "user" as const, content: text }];
     commit(next);
     setDraft("");
     setNotice(null);
-    chat.mutate(next.slice(-SEND_LIMIT), {
-      onSuccess: ({ reply }) => commit([...next, { role: "assistant", content: reply }]),
+    // A window cut mid-exchange can start on a reply; the API expects a user turn first.
+    const window = next.slice(-SEND_LIMIT);
+    if (window[0]?.role === "assistant") window.shift();
+    chat.mutate(window, {
+      onSuccess: ({ reply }) => {
+        if (gen === generation.current) commit([...next, { role: "assistant", content: reply }]);
+      },
       onError: (err) => {
+        if (gen !== generation.current) return;
         commit(messages);
-        setDraft(text);
+        setDraft((d) => (d === "" ? text : d));
         setNotice(noticeFor(err));
+      },
+      onSettled: () => {
+        inFlight.current = false;
       },
     });
   };
@@ -139,7 +152,9 @@ export function AssistantPanel({ open, onOpenChange }: { open: boolean; onOpenCh
               variant="ghost"
               size="sm"
               className="self-start"
+              disabled={chat.isPending}
               onClick={() => {
+                generation.current += 1;
                 commit([]);
                 setNotice(null);
               }}

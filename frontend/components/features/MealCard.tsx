@@ -77,8 +77,8 @@ export function MealCard({ recipe, size, onAddToPlan }: MealCardProps) {
             <Chip tone="soon">uses your {recipe.uses_expiring[0]}</Chip>
           )}
         </div>
-        {hero && onAddToPlan && (
-          <Button variant="dark" className="relative z-10 mt-2 self-start" onClick={onAddToPlan}>
+        {onAddToPlan && (
+          <Button variant={hero ? "dark" : "secondary"} className="relative z-10 mt-2 self-start" onClick={onAddToPlan}>
             Add to plan
           </Button>
         )}

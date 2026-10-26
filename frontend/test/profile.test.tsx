@@ -57,7 +57,7 @@ describe("profile page", () => {
     expect(screen.queryByLabelText("Display name")).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Change password" })).not.toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Create an account" })).toHaveAttribute("href", "/signup");
-    expect(screen.getAllByRole("button", { name: "Log out" })).toHaveLength(2);
+    expect(screen.getAllByRole("button", { name: "Log out" })).toHaveLength(1);
   });
 
   it("renders password field errors from the envelope", async () => {

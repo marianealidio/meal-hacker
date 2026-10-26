@@ -32,7 +32,7 @@ export default function ProfilePage() {
               <PasswordForm />
             </>
           )}
-          <AccountCard username={me.username} />
+          <AccountCard username={me.username} showLogout={!me.is_demo} />
         </>
       )}
     </div>

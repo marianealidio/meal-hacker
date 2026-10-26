@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { useLogout } from "@/lib/queries";
 
-export function LogoutButton({ variant = "secondary" }: { variant?: "secondary" | "ghost" }) {
+export function LogoutButton() {
   const router = useRouter();
   const logout = useLogout();
   return (
     <Button
-      variant={variant}
+      variant="secondary"
       pending={logout.isPending}
       onClick={() =>
         logout.mutate(undefined, {

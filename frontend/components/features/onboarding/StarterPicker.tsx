@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { SelectField } from "@/components/ui/Field";
@@ -21,6 +21,7 @@ export function StarterPicker() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [days, setDays] = useState("5");
   const [busy, setBusy] = useState(false);
+  const added = useRef<Set<string>>(new Set());
 
   const toggle = (name: string) =>
     setSelected((cur) => {
@@ -31,16 +32,23 @@ export function StarterPicker() {
 
   async function finish(stocked: boolean) {
     setBusy(true);
+    const total = added.current.size + selected.size;
     try {
       if (stocked) {
         const expiry = toISODate(addDays(new Date(), Number(days)));
         for (const group of STARTERS) {
           for (const name of group.items) {
-            if (!selected.has(name)) continue;
+            if (!selected.has(name) || added.current.has(name)) continue;
             await add.mutateAsync({
               name,
               category: group.category,
               ...(group.category === "Fridge" ? { expiry_date: expiry } : {}),
+            });
+            added.current.add(name);
+            setSelected((cur) => {
+              const next = new Set(cur);
+              next.delete(name);
+              return next;
             });
           }
         }
@@ -49,7 +57,8 @@ export function StarterPicker() {
       if (stocked) toast({ title: "Your kitchen is stocked" });
       router.replace("/dashboard");
     } catch {
-      // The mutation hooks toast the error; stay here so nothing is lost.
+      // The mutation hooks toast the error; stay here. Added starters are remembered so a retry skips them.
+      if (added.current.size > 0) toast({ title: `Added ${added.current.size} of ${total}. Try again for the rest.` });
       setBusy(false);
     }
   }
@@ -98,7 +107,7 @@ export function StarterPicker() {
         </Card>
       ))}
       <div className="flex flex-wrap items-center gap-3">
-        <Button disabled={count === 0} pending={busy && count > 0} onClick={() => finish(true)}>
+        <Button disabled={count === 0 || busy} pending={busy && count > 0} onClick={() => finish(true)}>
           Add {count} {count === 1 ? "ingredient" : "ingredients"}
         </Button>
         <Button variant="ghost" disabled={busy} onClick={() => finish(false)}>

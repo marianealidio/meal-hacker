@@ -9,7 +9,8 @@ const redirect = vi.fn((url: string) => {
   throw new Error(`NEXT_REDIRECT:${url}`);
 });
 vi.mock("@/lib/session", () => ({ getSession: () => getSession() }));
-vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-pathname": "/planner?week=x" }) }));
+let mockPath = "/planner?week=x";
+vi.mock("next/headers", () => ({ headers: async () => new Headers({ "x-pathname": mockPath }) }));
 vi.mock("next/navigation", () => ({
   redirect: (url: string) => redirect(url),
   useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
@@ -31,6 +32,7 @@ const wrap = (ui: React.ReactNode) =>
 beforeEach(() => {
   getSession.mockReset();
   redirect.mockClear();
+  mockPath = "/planner?week=x";
 });
 
 describe("(app) layout", () => {
@@ -74,5 +76,12 @@ describe("(app) layout onboarding", () => {
     getSession.mockResolvedValue({ ...user, onboarded: false });
     await expect(AppLayout({ children: <p>x</p> })).rejects.toThrow("NEXT_REDIRECT");
     expect(redirect).toHaveBeenCalledWith("/onboarding");
+  });
+
+  it.each(["/onboarding", "/profile"])("does not redirect a non-onboarded user on %s", async (path) => {
+    getSession.mockResolvedValue({ ...user, onboarded: false });
+    mockPath = path;
+    wrap(await AppLayout({ children: <p>page</p> }));
+    expect(redirect).not.toHaveBeenCalled();
   });
 });

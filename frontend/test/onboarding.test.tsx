@@ -13,7 +13,8 @@ const json = (b: unknown, s = 200) =>
   new Response(JSON.stringify(b), { status: s, headers: { "Content-Type": "application/json" } });
 const me: Me = { id: 1, username: "cook", display_name: "Cook", diet: "", intolerances: [], onboarded: false, is_demo: false };
 
-function setup(user: Me = me) {
+function setup(user: Me = me, failPost?: number) {
+  let posts = 0;
   const calls: { url: string; method: string; body?: string }[] = [];
   vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
     const url = String(input);
@@ -21,6 +22,9 @@ function setup(user: Me = me) {
     calls.push({ url, method, body: init?.body as string | undefined });
     if (method === "GET" && url === "/api/auth/me/") return json(user);
     if (method === "PATCH") return json({ ...user, onboarded: true });
+    if (method === "POST" && url === "/api/inventory/" && ++posts === failPost) {
+      return json({ error: { code: "boom", message: "Server hiccup", fields: {} } }, 500);
+    }
     if (method === "POST" && url === "/api/inventory/") return json({ id: 1, name: JSON.parse(init!.body as string).name }, 201);
     return json({}, 200);
   });
@@ -70,5 +74,42 @@ describe("onboarding", () => {
   it("sends demo users to the dashboard", async () => {
     setup({ ...me, is_demo: true, onboarded: true });
     await waitFor(() => expect(replace).toHaveBeenCalledWith("/dashboard"));
+  });
+});
+
+describe("onboarding retry", () => {
+  it("does not re-add starters that already succeeded", async () => {
+    const calls = setup(me, 2);
+    const u = userEvent.setup();
+    for (const n of ["eggs", "rice", "frozen peas"]) await u.click(await screen.findByRole("button", { name: n }));
+    await u.click(screen.getByRole("button", { name: "Add 3 ingredients" }));
+    expect(await screen.findByText("Added 1 of 3. Try again for the rest.")).toBeInTheDocument();
+    expect(replace).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "eggs" })).toHaveAttribute("aria-pressed", "false");
+    await u.click(await screen.findByRole("button", { name: "Add 2 ingredients" }));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith("/dashboard"));
+    const names = calls.filter((c) => c.method === "POST").map((c) => JSON.parse(c.body!).name);
+    expect(names).toEqual(["eggs", "rice", "rice", "frozen peas"]);
+    expect(calls.filter((c) => c.method === "PATCH")).toHaveLength(1);
+  });
+
+  it("disables Add while skipping", async () => {
+    let release = () => {};
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      const url = String(input);
+      if ((init?.method ?? "GET") === "GET") return json(me);
+      if (url === "/api/auth/me/") await new Promise<void>((r) => (release = r));
+      return json({ ...me, onboarded: true });
+    });
+    render(
+      <QueryClientProvider client={new QueryClient()}>
+        <Toaster><OnboardingPage /></Toaster>
+      </QueryClientProvider>,
+    );
+    const u = userEvent.setup();
+    await u.click(await screen.findByRole("button", { name: "eggs" }));
+    await u.click(screen.getByRole("button", { name: "Skip for now" }));
+    expect(screen.getByRole("button", { name: "Add 1 ingredient" })).toBeDisabled();
+    release();
   });
 });

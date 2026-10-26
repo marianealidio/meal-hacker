@@ -1,4 +1,4 @@
-import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
+import type { InputHTMLAttributes, ReactNode, Ref, SelectHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/cn";
 
@@ -45,7 +45,7 @@ function FieldShell({
   );
 }
 
-export type TextFieldProps = Shared & Omit<InputHTMLAttributes<HTMLInputElement>, "name">;
+export type TextFieldProps = Shared & Omit<InputHTMLAttributes<HTMLInputElement>, "name"> & { ref?: Ref<HTMLInputElement> };
 
 export function TextField({ label, name, error, hint, id, className, "aria-describedby": describedBy, ...rest }: TextFieldProps) {
   const fieldId = id ?? name;

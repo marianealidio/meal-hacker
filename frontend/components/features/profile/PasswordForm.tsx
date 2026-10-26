@@ -14,6 +14,7 @@ export function PasswordForm() {
   const [oldPassword, setOld] = useState("");
   const [newPassword, setNew] = useState("");
   const formRef = useRef<HTMLFormElement>(null);
+  const oldRef = useRef<HTMLInputElement | null>(null);
   const bannerRef = useRef<HTMLParagraphElement>(null);
 
   const err = change.error instanceof ApiError ? change.error : null;
@@ -43,7 +44,7 @@ export function PasswordForm() {
               onSuccess: () => {
                 setOld("");
                 setNew("");
-                document.getElementById("old_password")?.focus();
+                oldRef.current?.focus();
               },
             },
           );
@@ -55,6 +56,7 @@ export function PasswordForm() {
           </p>
         )}
         <TextField
+          ref={oldRef}
           label="Current password"
           name="old_password"
           type="password"

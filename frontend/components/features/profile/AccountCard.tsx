@@ -1,7 +1,7 @@
 import { Card } from "@/components/ui/Card";
 import { LogoutButton } from "./LogoutButton";
 
-export function AccountCard({ username }: { username: string }) {
+export function AccountCard({ username, showLogout = true }: { username: string; showLogout?: boolean }) {
   return (
     <Card as="section" aria-labelledby="account-title" className="flex flex-wrap items-center justify-between gap-4 p-5 sm:p-6">
       <div>
@@ -12,7 +12,7 @@ export function AccountCard({ username }: { username: string }) {
           Signed in as <span className="font-medium text-ink">{username}</span>
         </p>
       </div>
-      <LogoutButton />
+      {showLogout && <LogoutButton />}
     </Card>
   );
 }

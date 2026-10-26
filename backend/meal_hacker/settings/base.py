@@ -94,6 +94,7 @@ SPECTACULAR_SETTINGS = {
     "TITLE": "Meal Hacker API",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "SERVE_PERMISSIONS": ["rest_framework.permissions.IsAuthenticated"],
 }
 
 CSRF_COOKIE_SAMESITE = "Lax"

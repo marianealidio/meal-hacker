@@ -155,7 +155,7 @@ Browser ──► Vercel (Next.js 15, App Router, TypeScript)
 - `docs/superpowers/`: specs and plans. `.github/workflows/`: CI. `render.yaml`.
 
 ### Auth
-Same-origin through the Vercel rewrite. Uses Django session cookies and CSRF; the frontend reads the `csrftoken` cookie and sends `X-CSRFToken`. `(app)` routes check the session on the server and redirect to `/login` if needed. `POST /api/auth/demo/` logs in the shared demo user; a nightly cron reruns `seed_demo --reset`.
+Same-origin through the Vercel rewrite. Uses Django session cookies and CSRF; the frontend reads the `csrftoken` cookie and sends `X-CSRFToken`. `(app)` routes check the session on the server and redirect to `/login` if needed. `POST /api/auth/demo/` logs in the shared demo user; the first demo login more than 24 hours after the last seed resets the demo kitchen (Render's free tier has no cron jobs).
 
 ### Spoonacular client
 `recipes/spoonacular.py` is the only module that calls Spoonacular.
@@ -163,7 +163,7 @@ Same-origin through the Vercel rewrite. Uses Django session cookies and CSRF; th
 - Turns summary HTML into a plain description of about 160 characters, cut at a word boundary.
 - Returns typed dicts.
 - On API failure or quota exhaustion, serves stale cache and the API sets `X-Stale: true`; with no cache, it returns a clean 503.
-- Suggestions come from `findByIngredients` + `informationBulk` (for descriptions, time, diets), both cached.
+- Suggestions come from `findByIngredients` + `informationBulk` (for descriptions, time, diets), both cached. The profile diet is applied by filtering the merged results on their `diets`; intolerances apply to library search only, because `findByIngredients` has no intolerance filter and returns no allergen data.
 
 ### Groq client
 Only `assistant/groq.py` calls Groq. The system prompt keeps answers to kitchen topics and includes the user's inventory names. Rate limit: 20 messages per hour per user (DRF throttle).
@@ -197,7 +197,7 @@ Only `assistant/groq.py` calls Groq. The system prompt keeps answers to kitchen 
 
 ## 8. Deployment
 - Vercel project rooted at `frontend/`; rewrites `/api/:path*` to `BACKEND_URL`; PR preview deployments.
-- Render, set up from `render.yaml`: web service (`gunicorn`, whitenoise), free Postgres, nightly cron for `seed_demo --reset`. Migrations and seeding run on deploy.
+- Render, set up from `render.yaml`: web service (`gunicorn`, whitenoise), free Postgres. Migrations and seeding run in the build command (the free tier has no pre-deploy step or cron); the demo kitchen resets lazily on login after 24 hours.
 - Secrets live only in the Render and Vercel dashboards. `.env.example` lists variable names.
 - If the user hasn't set up Render yet: deploy only the Vercel preview and verify the backend locally. Report this in the morning.
 

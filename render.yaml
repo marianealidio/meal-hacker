@@ -7,9 +7,10 @@ services:
     runtime: python
     plan: free
     rootDir: backend
-    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput
-    preDeployCommand: python manage.py migrate && python manage.py seed_demo
-    startCommand: gunicorn meal_hacker.wsgi:application --bind 0.0.0.0:$PORT
+    # Free web services have no preDeployCommand or cron jobs, so migrate and seed at build time.
+    # The demo kitchen resets itself lazily on the first demo login after 24 hours.
+    buildCommand: pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py seed_demo
+    startCommand: gunicorn meal_hacker.wsgi:application --bind 0.0.0.0:$PORT --workers 1
     healthCheckPath: /api/health/
     envVars:
       - key: PYTHON_VERSION
@@ -29,21 +30,4 @@ services:
       - key: ALLOWED_HOSTS
         sync: false
       - key: CSRF_TRUSTED_ORIGINS
-        sync: false
-  - type: cron
-    name: meal-hacker-demo-reset
-    runtime: python
-    plan: free
-    rootDir: backend
-    schedule: "17 3 * * *"
-    buildCommand: pip install -r requirements.txt
-    startCommand: python manage.py seed_demo --reset
-    envVars:
-      - key: DJANGO_SETTINGS_MODULE
-        value: meal_hacker.settings.prod
-      - key: DATABASE_URL
-        fromDatabase:
-          name: meal-hacker-db
-          property: connectionString
-      - key: SECRET_KEY
         sync: false

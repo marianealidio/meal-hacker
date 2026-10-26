@@ -1,13 +1,21 @@
+import os
+
 import dj_database_url
 from decouple import config
 
 from .base import *  # noqa: F401,F403
-from .base import SECRET_KEY
+from .base import ALLOWED_HOSTS, SECRET_KEY
 
 if not SECRET_KEY:
     raise RuntimeError("SECRET_KEY must be set in production")
 
 DEBUG = False
+
+# Render sets this to the service's own hostname (xxx.onrender.com).
+RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+if RENDER_EXTERNAL_HOSTNAME:
+    ALLOWED_HOSTS = [*ALLOWED_HOSTS, RENDER_EXTERNAL_HOSTNAME]
+
 DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},

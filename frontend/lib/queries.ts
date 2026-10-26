@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQuery, useQueryClient, type QueryClient, type QueryKey } from "@tanstack/react-query";
+import { keepPreviousData, useMutation, useQuery, useQueryClient, type QueryClient, type QueryKey } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/Toaster";
 import { api, type InventoryInput, type PlanInput, type ProfilePatch, type SearchParams, type ShoppingInput } from "./api";
 import { formatDay } from "./dates";
@@ -123,7 +123,7 @@ export function useSuggestions() {
 }
 
 export function useSearch(params: SearchParams, { enabled = true }: { enabled?: boolean } = {}) {
-  return useQuery({ queryKey: queryKeys.search(params), queryFn: () => api.search(params), enabled });
+  return useQuery({ queryKey: queryKeys.search(params), queryFn: () => api.search(params), enabled, placeholderData: keepPreviousData });
 }
 
 export function useRecipe(id: number) {

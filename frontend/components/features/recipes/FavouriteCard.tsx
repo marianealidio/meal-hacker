@@ -7,7 +7,7 @@ export function FavouriteCard({ favourite }: { favourite: Favourite }) {
   return (
     <article className="relative flex items-center gap-3 rounded-card border border-line bg-card p-2.5 shadow-soft transition-shadow hover:shadow-lift">
       <div className="relative size-24 shrink-0 overflow-hidden rounded-2xl bg-paper">
-        {favourite.image && <Image src={favourite.image} alt={favourite.title} fill sizes="96px" className="object-cover" />}
+        {favourite.image && <Image src={favourite.image} alt="" fill sizes="96px" className="object-cover" />}
       </div>
       <div className="min-w-0 flex-1 pr-11">
         <h3 className="font-display text-title font-medium text-sage-deep">

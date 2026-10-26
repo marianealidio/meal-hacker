@@ -9,7 +9,7 @@ import { MealCard } from "@/components/features/MealCard";
 import { PageHeader } from "@/components/features/PageHeader";
 import { StaleNotice } from "@/components/features/StaleNotice";
 import { FilterBar } from "@/components/features/recipes/FilterBar";
-import { filtersFromParams, filtersToQuery } from "@/components/features/recipes/filters";
+import { filtersFromParams, filtersToQuery, hasFilters } from "@/components/features/recipes/filters";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -40,7 +40,9 @@ function RecipesBody() {
   const router = useRouter();
   const params = useSearchParams();
   const filters = filtersFromParams(params);
-  const { data, isPending, isError, error, refetch } = useSearch(filters);
+  const { data, isError, error, refetch } = useSearch(filters);
+  const [resetKey, setResetKey] = useState(0);
+  const active = hasFilters(filters);
   const [planning, setPlanning] = useState<{ id: number; title: string } | null>(null);
 
   function update(patch: SearchParams) {
@@ -48,31 +50,46 @@ function RecipesBody() {
   }
 
   const recipes = data?.data.results ?? [];
+  const showError = isError && !data;
+  const countText = !data ? "Loading recipes…" : `${recipes.length} ${recipes.length === 1 ? "recipe" : "recipes"}`;
+
+  function clearFilters() {
+    setResetKey((k) => k + 1);
+    router.replace("/recipes", { scroll: false });
+  }
 
   return (
     <div className="flex flex-col gap-6">
       <PageHeader kicker="find something good" title="Recipes" />
-      <FilterBar filters={filters} onChange={update} />
+      <FilterBar key={resetKey} filters={filters} onChange={update} />
 
-      {isError && !data ? (
+      {showError ? (
         <ErrorCard error={error} onRetry={() => refetch()} />
-      ) : isPending ? (
-        <RecipesSkeleton />
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex flex-wrap items-center gap-3">
             <h2 aria-live="polite" className="text-title font-medium text-sage-deep">
-              {recipes.length} {recipes.length === 1 ? "recipe" : "recipes"}
+              {countText}
             </h2>
-            {data.stale && <StaleNotice />}
+            {data?.stale && <StaleNotice />}
           </div>
-          {recipes.length === 0 ? (
-            <EmptyState
-              illustration={<Doodle name="whisk" className="size-20 text-sage-deep" />}
-              title="No recipes match"
-              body="Try fewer filters, or a different search."
-              action={<Button variant="secondary" onClick={() => router.replace("/recipes", { scroll: false })}>Clear filters</Button>}
-            />
+          {!data ? (
+            <RecipesSkeleton />
+          ) : recipes.length === 0 ? (
+            active ? (
+              <EmptyState
+                illustration={<Doodle name="whisk" className="size-20 text-sage-deep" />}
+                title="No recipes match"
+                body="Try fewer filters, or a different search."
+                action={<Button variant="secondary" onClick={clearFilters}>Clear filters</Button>}
+              />
+            ) : (
+              <EmptyState
+                illustration={<Doodle name="whisk" className="size-20 text-sage-deep" />}
+                title="Nothing here yet"
+                body="No recipes yet. Check back soon."
+              />
+            )
           ) : (
             <div className={GRID}>
               {recipes.map((r) => (

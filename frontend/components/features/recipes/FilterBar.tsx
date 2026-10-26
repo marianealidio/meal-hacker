@@ -30,10 +30,11 @@ export function FilterBar({ filters, onChange }: FilterBarProps) {
   }, [urlQ]);
 
   useEffect(() => {
-    if (text === pushed.current) return;
+    const value = text.trim();
+    if (value === pushed.current) return;
     const id = setTimeout(() => {
-      pushed.current = text;
-      onChangeRef.current({ q: text });
+      pushed.current = value;
+      onChangeRef.current({ q: value });
     }, DEBOUNCE_MS);
     return () => clearTimeout(id);
   }, [text]);

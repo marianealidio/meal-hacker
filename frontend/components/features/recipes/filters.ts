@@ -24,11 +24,15 @@ export const DIETS = [
 export function filtersFromParams(p: URLSearchParams): SearchParams {
   const out: SearchParams = {};
   for (const k of ["q", "type", "cuisine", "diet"] as const) {
-    const v = p.get(k);
+    const v = p.get(k)?.trim();
     if (v) out[k] = v;
   }
   if (p.get("matches_kitchen") === "1") out.matches_kitchen = true;
   return out;
+}
+
+export function hasFilters(f: SearchParams): boolean {
+  return Boolean(f.q || f.type || f.cuisine || f.diet || f.matches_kitchen);
 }
 
 export function filtersToQuery(f: SearchParams): string {

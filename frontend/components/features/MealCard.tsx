@@ -26,7 +26,7 @@ export function MealCard({ recipe, size, onAddToPlan }: MealCardProps) {
         compact ? "size-24 rounded-2xl" : cn("w-full rounded-arch", hero ? "aspect-[4/3]" : "aspect-[4/5]"),
       )}
     >
-      {recipe.image && <Image src={recipe.image} alt={recipe.title} fill sizes={sizes} className="object-cover" />}
+      {recipe.image && <Image src={recipe.image} alt="" fill sizes={sizes} className="object-cover" />}
       <FavouriteButton
         recipeId={recipe.id}
         isFavourite={recipe.is_favourite}

@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { act, render, screen, waitFor, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import FavouritesPage from "@/app/(app)/favourites/page";
@@ -69,20 +69,80 @@ beforeEach(() => {
   nav.replace.mockImplementation((url: string) => nav.set(url.split("?")[1] ?? ""));
   nav.replace.mockClear();
 });
-afterEach(() => nav.replace.mockReset());
+afterEach(() => {
+  vi.useRealTimers();
+  nav.replace.mockReset();
+});
 
 const results = () => json({ results: [recipe(1, "Tomato soup"), recipe(2, "Leek soup")], reason: null });
 
 describe("Recipes page", () => {
-  it("typing in search updates the URL and fetches after the debounce", async () => {
+  it("typing in search updates the URL and fetches exactly once after the debounce", async () => {
     const calls = mockFetch({ "GET /api/recipes/search/": results });
-    const user = userEvent.setup();
     wrap(<RecipesPage />);
     await screen.findByText("Tomato soup");
-    await user.type(screen.getByLabelText("Search recipes"), "soup");
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    fireEvent.change(screen.getByLabelText("Search recipes"), { target: { value: "soup" } });
     expect(nav.replace).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(399);
+    });
+    expect(nav.replace).not.toHaveBeenCalled();
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1);
+    });
+    expect(nav.replace).toHaveBeenCalledTimes(1);
+    expect(nav.replace).toHaveBeenCalledWith("/recipes?q=soup", { scroll: false });
+    vi.useRealTimers();
+    await waitFor(() => expect(calls.filter((c) => c.url === "/api/recipes/search/?q=soup")).toHaveLength(1));
+  });
+
+  it("trims the search text before it reaches the URL and the API", async () => {
+    const calls = mockFetch({ "GET /api/recipes/search/": results });
+    wrap(<RecipesPage />);
+    await screen.findByText("Tomato soup");
+    await userEvent.type(screen.getByLabelText("Search recipes"), "  soup ");
     await waitFor(() => expect(nav.replace).toHaveBeenCalledWith("/recipes?q=soup", { scroll: false }), { timeout: 2000 });
     await waitFor(() => expect(calls.some((c) => c.url === "/api/recipes/search/?q=soup")).toBe(true));
+  });
+
+  it("keeps one live count region mounted across a filter change", async () => {
+    mockFetch({
+      "GET /api/recipes/search/?matches_kitchen=1": () => json({ results: [recipe(1, "Tomato soup")], reason: null }),
+      "GET /api/recipes/search/": results,
+    });
+    const { container } = wrap(<RecipesPage />);
+    const live = await waitFor(() => {
+      const el = container.querySelector("[aria-live]");
+      expect(el).toHaveTextContent("2 recipes");
+      return el!;
+    });
+    await userEvent.click(screen.getByRole("switch", { name: "Matches my kitchen" }));
+    await waitFor(() => expect(live).toHaveTextContent("1 recipe"));
+    expect(container.querySelector("[aria-live]")).toBe(live);
+    expect(live.isConnected).toBe(true);
+  });
+
+  it("Clear filters cancels a pending search debounce and resets the input", async () => {
+    nav.set("type=soup");
+    mockFetch({ "GET /api/recipes/search/": () => json({ results: [], reason: null }) });
+    wrap(<RecipesPage />);
+    await screen.findByText("No recipes match");
+    const input = screen.getByLabelText("Search recipes");
+    await userEvent.type(input, "abc");
+    await userEvent.click(screen.getByRole("button", { name: "Clear filters" }));
+    expect(screen.getByLabelText("Search recipes")).toHaveValue("");
+    await new Promise((r) => setTimeout(r, 600));
+    expect(nav.replace).toHaveBeenCalledTimes(1);
+    expect(nav.replace).toHaveBeenCalledWith("/recipes", { scroll: false });
+    expect(nav.get()).toBe("");
+  });
+
+  it("offers no Clear filters when nothing is filtered", async () => {
+    mockFetch({ "GET /api/recipes/search/": () => json({ results: [], reason: null }) });
+    wrap(<RecipesPage />);
+    expect(await screen.findByText("No recipes yet. Check back soon.")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Clear filters" })).not.toBeInTheDocument();
   });
 
   it("toggling Matches my kitchen adds matches_kitchen=1", async () => {

@@ -14,7 +14,7 @@ import { useSuggestions } from "@/lib/queries";
 
 export function TonightsPick({ className }: { className?: string }) {
   const { data, isPending, isError, error, refetch } = useSuggestions();
-  const [planning, setPlanning] = useState(false);
+  const [planning, setPlanning] = useState<{ id: number; title: string } | null>(null);
 
   if (isError && !data) return <div className={className}><ErrorCard error={error} onRetry={() => refetch()} /></div>;
   if (isPending || !data) {
@@ -33,8 +33,10 @@ export function TonightsPick({ className }: { className?: string }) {
       {data.stale && <div className="mb-3"><StaleNotice /></div>}
       {first ? (
         <>
-          <MealCard recipe={first} size="hero" onAddToPlan={() => setPlanning(true)} />
-          <AddToPlanDialog recipe={first} open={planning} onOpenChange={setPlanning} />
+          <MealCard recipe={first} size="hero" onAddToPlan={() => setPlanning({ id: first.id, title: first.title })} />
+          {planning && (
+            <AddToPlanDialog recipe={planning} open onOpenChange={(o) => { if (!o) setPlanning(null); }} />
+          )}
         </>
       ) : reason === "need_more_ingredients" ? (
         <Card>

@@ -5,6 +5,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { AddToPlanDialog } from "@/components/features/AddToPlanDialog";
 import { Toaster } from "@/components/ui/Toaster";
 import DashboardPage from "@/app/(app)/dashboard/page";
+import { TonightsPick } from "@/components/features/dashboard/TonightsPick";
+import { queryKeys } from "@/lib/queries";
 import { toISODate } from "@/lib/dates";
 import type { InventoryItem, RecipeSummary } from "@/lib/types";
 
@@ -114,5 +116,24 @@ describe("AddToPlanDialog", () => {
     expect(post.url).toBe("/api/plans/");
     expect(JSON.parse(post.body!)).toEqual({ recipe_id: 9, planned_date: toISODate(new Date()), slot: "dinner", add_missing: true });
     await waitFor(() => expect(onOpenChange).toHaveBeenCalledWith(false));
+  });
+});
+
+describe("TonightsPick", () => {
+  it("plans the recipe that was clicked even if suggestions refetch underneath the dialog", async () => {
+    let first = 1;
+    const routes = baseRoutes();
+    routes["GET /api/recipes/suggestions/"] = () => json({ results: [recipe(first, `Recipe ${first}`)], reason: null });
+    routes["POST /api/plans/"] = () => json({ id: 1, recipe_id: 1, recipe_title: "x", recipe_image: "", description: "", planned_date: toISODate(new Date()), slot: "dinner", added_to_shopping: 0 }, 201);
+    const calls = mockFetch(routes);
+    const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+    render(<QueryClientProvider client={qc}><Toaster><TonightsPick /></Toaster></QueryClientProvider>);
+    await userEvent.click(await screen.findByRole("button", { name: /add to plan/i }));
+    const dialog = await screen.findByRole("dialog", { name: "Add to plan" });
+    first = 2;
+    await act(async () => { await qc.refetchQueries({ queryKey: queryKeys.suggestions }); });
+    await userEvent.click(within(dialog).getByRole("button", { name: "Add to plan" }));
+    await waitFor(() => expect(calls.some((c) => c.method === "POST")).toBe(true));
+    expect(JSON.parse(calls.find((c) => c.method === "POST")!.body!).recipe_id).toBe(1);
   });
 });

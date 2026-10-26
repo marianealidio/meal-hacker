@@ -62,14 +62,19 @@ function CookSteps({ steps, onClose }: { steps: string[]; onClose: () => void })
     requestAnimationFrame(() => primary.current?.focus());
   };
 
+  const goRef = useRef(go);
+  goRef.current = go;
+  const indexRef = useRef(index);
+  indexRef.current = index;
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "ArrowRight") setIndex((i) => Math.min(last, i + 1));
-      if (e.key === "ArrowLeft") setIndex((i) => Math.max(0, i - 1));
+      if (e.key === "ArrowRight") goRef.current(indexRef.current + 1);
+      if (e.key === "ArrowLeft") goRef.current(indexRef.current - 1);
     }
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
-  }, [last]);
+  }, []);
 
   if (steps.length === 0) return <p className="text-muted">No method was provided for this one.</p>;
 

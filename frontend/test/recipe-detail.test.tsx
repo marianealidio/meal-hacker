@@ -169,6 +169,16 @@ describe("recipe detail", () => {
     expect(screen.getByRole("button", { name: "Finish cooking" })).toHaveFocus();
   });
 
+  it("keeps focus on the primary button when arrow keys reach the last step", async () => {
+    mockFetch();
+    wrap();
+    const user = userEvent.setup();
+    await user.click(await screen.findByRole("button", { name: "Cook mode" }));
+    await user.keyboard("{ArrowRight}{ArrowRight}");
+    expect(screen.getByText("Step 3 of 3")).toBeInTheDocument();
+    await waitFor(() => expect(screen.getByRole("button", { name: "Finish cooking" })).toHaveFocus());
+  });
+
   it("hides cook mode when there are no steps", async () => {
     mockFetch(() => json({ ...recipe, steps: [] }));
     wrap();

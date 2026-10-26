@@ -109,7 +109,15 @@ export type SearchParams = {
   matches_kitchen?: boolean;
 };
 
-export type InventoryInput = { name: string; quantity?: string; unit?: string; category: T.Category; expiry_date?: string | null };
+export type InventoryInput = {
+  /** Required unless `text` is given; the server parses `text` ("2 red peppers") into name and quantity. */
+  name?: string;
+  text?: string;
+  quantity?: string;
+  unit?: string;
+  category: T.Category;
+  expiry_date?: string | null;
+};
 export type ProfilePatch = Partial<Pick<T.Me, "display_name" | "diet" | "intolerances" | "onboarded">>;
 export type PlanInput = { recipe_id: number; planned_date: string; slot: T.Slot; add_missing?: boolean };
 export type ShoppingInput = { ingredient_name: string; quantity?: string; aisle?: string };

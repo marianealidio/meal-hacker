@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #FBF6EE;
+  --color-paper: #F3EBDD;
+  --color-card: #FFFDF8;
+  --color-sage: #8FA98B;
+  --color-sage-deep: #34503F;
+  --color-sage-ink: #1F3328;
+  --color-sage-tint: #DFE8DC;
+  --color-coral: #E8836B;
+  --color-coral-deep: #A3472F;
+  --color-coral-tint: #F7DDD5;
+  --color-coral-tint-ink: #8A3B29;
+  --color-blush: #F4C9C0;
+  --color-butter: #F2D08A;
+  --color-butter-ink: #7A5A10;
+  --color-ink: #2A2A26;
+  --color-muted: #5C5C55;
+  --color-line: #E6DCCB;
+
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-body: var(--font-dm-sans), system-ui, sans-serif;
+  --font-script: var(--font-caveat), cursive;
+
+  --radius-card: 20px;
+  --radius-pill: 999px;
+
+  --shadow-soft: 0 1px 2px rgb(42 42 38 / 0.04), 0 8px 24px -12px rgb(52 80 63 / 0.18);
+  --shadow-lift: 0 2px 4px rgb(42 42 38 / 0.06), 0 18px 40px -16px rgb(52 80 63 / 0.28);
+
+  --text-display-xl: clamp(2.6rem, 1.6rem + 4.2vw, 5rem);
+  --text-display-xl--line-height: 1.02;
+  --text-display-lg: clamp(2rem, 1.4rem + 2.6vw, 3.4rem);
+  --text-display-lg--line-height: 1.08;
+  --text-display-md: clamp(1.5rem, 1.2rem + 1.2vw, 2.1rem);
+  --text-display-md--line-height: 1.15;
+  --text-title: clamp(1.15rem, 1.05rem + 0.4vw, 1.35rem);
+  --text-title--line-height: 1.25;
+}
+
+@utility rounded-arch {
+  border-radius: 999px 999px 24px 24px;
+}
+
+@keyframes mh-fade-in { from { opacity: 0; } }
+@keyframes mh-fade-out { to { opacity: 0; } }
+@keyframes mh-pop-in { from { opacity: 0; scale: 0.96; } }
+@keyframes mh-slide-left { from { translate: 100% 0; } }
+@keyframes mh-slide-up { from { opacity: 0; translate: 0 24px; } }
+@keyframes mh-float { 0%, 100% { translate: 0 6px; } 50% { translate: 0 -6px; } }
+@keyframes mh-drift { 0%, 100% { translate: 0 0; rotate: 0deg; } 50% { translate: 4px -10px; rotate: 6deg; } }
+@keyframes mh-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+
+@layer base {
+  html { background: var(--color-cream); color: var(--color-ink); }
+  body { font-family: var(--font-body); -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 500; letter-spacing: -0.02em; color: var(--color-sage-deep); }
+  a { color: inherit; text-decoration-color: var(--color-coral); text-underline-offset: 3px; }
+  ::selection { background: var(--color-blush); color: var(--color-ink); }
+  :focus-visible { outline: 2px solid var(--color-coral-deep); outline-offset: 2px; border-radius: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0s !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  [data-reveal] { opacity: 1 !important; transform: none !important; }
+}
+
+@media print {
+  [data-print="hide"] { display: none !important; }
+  [data-print="flush"] { padding: 0 !important; margin: 0 !important; }
+  html, body { background: #fff !important; color: #000 !important; }
+  a[href="#main"] { display: none !important; }
+
+  [data-shopping] * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
+  [data-shopping] h1 { font-size: 22pt; margin-bottom: 4pt; }
+  [data-shopping] .font-script { display: none; }
+  [data-shopping] .shop-group {
+    break-inside: avoid;
+    border: 1px solid #000;
+    border-radius: 0;
+    margin-bottom: 12pt;
+    padding: 8pt 10pt;
+  }
+  [data-shopping] .shop-count { display: none; }
+  [data-shopping] ul { border: 0; }
+  [data-shopping] li { break-inside: avoid; border-color: #999 !important; }
+  [data-shopping] .grid { display: block !important; }
+  /* Native checkbox art is replaced by a plain character so it prints without background graphics. */
+  [data-shopping] .shop-box { border: 0 !important; width: auto; height: auto; }
+  [data-shopping] .shop-tick { display: none; }
+  [data-shopping] .shop-box::before { content: "\2610"; font-size: 16pt; line-height: 1; }
+  [data-shopping] .shop-box[data-checked="true"]::before { content: "\2611"; }
+  [data-shopping] .line-through { text-decoration: line-through; }
+}
+
+/* Inside the app shell, toasts clear the fixed bottom tabs (hidden from lg up). */
+body[data-app-shell] { --toast-bottom: calc(4.5rem + env(safe-area-inset-bottom)); }
+@media (min-width: 1024px) { body[data-app-shell] { --toast-bottom: 0px; } }

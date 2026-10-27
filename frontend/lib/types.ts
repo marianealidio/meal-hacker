@@ -1,0 +1,16 @@
+export type Me = { id: number; username: string; display_name: string; diet: string; intolerances: string[]; onboarded: boolean; is_demo: boolean };
+export type Category = "Fridge" | "Pantry" | "Freezer";
+export type InventoryItem = { id: number; name: string; quantity: string; unit: string; category: Category; expiry_date: string | null; days_left: number | null; expires_soon: boolean; date_added: string };
+export type Note = { note: string; updated_at: string };
+export type MissingIngredient = { name: string; aisle: string };
+export type RecipeSummary = { id: number; title: string; image: string; description: string; ready_in_minutes: number | null; servings: number | null; diets: string[]; used: string[]; missing: MissingIngredient[]; is_favourite: boolean; uses_expiring?: string[] };
+export type RecipeIngredient = { name: string; amount: number | null; unit: string; original: string; aisle: string; have: boolean };
+export type RecipeDetail = RecipeSummary & { summary?: string; ingredients: RecipeIngredient[]; steps: string[]; source_url: string; cuisines: string[] };
+export type Suggestions = { results: RecipeSummary[]; reason: "need_more_ingredients" | null };
+export type Favourite = { recipe_id: number; title: string; image: string; description: string; created_at: string };
+export type Slot = "breakfast" | "lunch" | "dinner";
+export type MealPlan = { id: number; recipe_id: number; recipe_title: string; recipe_image: string; description: string; planned_date: string; slot: Slot };
+export type Week = { week_start: string; days: { date: string; meals: MealPlan[] }[] };
+export type ShoppingItem = { id: number; ingredient_name: string; quantity: string; aisle: string; checked: boolean; source: "manual" | "auto"; meal_plan: number | null; date_added: string };
+export type Stats = { used_this_month: number; expired_this_month: number; meals_planned_this_week: number; items_in_kitchen: number; expiring_soon: number };
+export type ChatMessage = { role: "user" | "assistant"; content: string };

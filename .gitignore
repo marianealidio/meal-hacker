@@ -17,3 +17,7 @@ test-results/
 .superpowers/
 db-e2e.sqlite3
 .next-e2e/
+sweep-reports/
+frontend/.next-sweep/
+backend/db-e2e.sqlite3
+frontend/.next-dev/
